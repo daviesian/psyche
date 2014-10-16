@@ -15,3 +15,5 @@ exe/SimpleCLM/Release/
 *.pdb
 lib/3rdParty/dlib/Debug/
 lib/3rdParty/dlib/Release/
+lib/local/FaceAnalyser/Release/
+lib/local/FaceAnalyser/Debug/
