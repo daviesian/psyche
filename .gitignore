@@ -1,0 +1,17 @@
+ipch/
+*.vsp
+*.opensdf
+*.sdf
+*.ipch
+*.suo
+lib/local/CLM/Debug/
+lib/local/CLM/Release/
+exe/Recording/Debug/
+exe/SimpleCLM/Debug/
+exe/SimpleCLM/Release/
+/Debug/
+/Release/
+*.psess
+*.pdb
+lib/3rdParty/dlib/Debug/
+lib/3rdParty/dlib/Release/
