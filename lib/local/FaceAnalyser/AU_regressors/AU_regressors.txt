@@ -1,0 +1,4 @@
+svr_lin/AU_12.dat Smile
+svr_lin/AU_4.dat Brow furrow
+svr_lin/AU_6.dat Cheek raising
+svr_lin/AU_25.dat Open mouth

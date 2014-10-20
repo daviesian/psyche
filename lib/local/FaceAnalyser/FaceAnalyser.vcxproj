@@ -36,12 +36,14 @@
     <Import Project="..\..\3rdParty\OpenCV\openCVd_vs2012.props" />
     <Import Project="..\..\3rdParty\dlib\dlib.props" />
     <Import Project="..\..\3rdParty\tbb\tbb_2012.props" />
+    <Import Project="..\..\3rdParty\boost\boost_vs2012d.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\3rdParty\OpenCV\openCV_vs2012.props" />
     <Import Project="..\..\3rdParty\dlib\dlib.props" />
     <Import Project="..\..\3rdParty\tbb\tbb_2012.props" />
+    <Import Project="..\..\3rdParty\boost\boost_vs2012.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup />
@@ -63,24 +65,29 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>
       </SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)lib\local\CLM\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)lib\local\CLM\include;./include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <PreLinkEvent>
+      <Command>xcopy /I /E /Y /D "$(SolutionDir)lib\local\FaceAnalyser\AU_regressors" "$(OutDir)AU_regressors"</Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="FaceAnalyser.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\lib\local\CLM\CLM_vs2012.vcxproj">
+    <ProjectReference Include="..\CLM\CLM_vs2012.vcxproj">
       <Project>{bdc1d107-de17-4705-8e7b-cdde8bfb2bf8}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="FaceAnalyser.cpp" />
+    <ClInclude Include="include\SVR_lin_regressors.h" />
+    <ClInclude Include="include\FaceAnalyser.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\FaceAnalyser.cpp" />
+    <ClCompile Include="src\SVR_lin_regressors.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

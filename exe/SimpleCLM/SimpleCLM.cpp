@@ -48,6 +48,8 @@
 #include <CLMParameters.h>
 #include <CLM_utils.h>
 
+#include <FaceAnalyser.h>
+
 #include <fstream>
 #include <sstream>
 
@@ -95,7 +97,7 @@ int main (int argc, char **argv)
 	vector<string> files, depth_directories, pose_output_files, tracked_videos_output, landmark_output_files;
 	
 	// By default try webcam 0
-	int device = 1;
+	int device = 0;
 
 	// cx and cy aren't necessarilly in the image center, so need to be able to override it (start with unit vals and init them if none specified)
     float fx = 500, fy = 500, cx = 0, cy = 0;
@@ -321,7 +323,7 @@ int main (int argc, char **argv)
 			// Output the estimated head pose
 			if(!pose_output_files.empty())
 			{
-				pose_output_file << frame_count + 1 << " " << (float)frame_count * 1000/30 << " " << 1 << " " << pose_estimate_CLM[0] << " " << pose_estimate_CLM[1] << " " << pose_estimate_CLM[2] << " " << pose_estimate_CLM[3] << " " << pose_estimate_CLM[4] << " " << pose_estimate_CLM[5] << endl;
+				pose_output_file << frame_count + 1 << " " << (float)frame_count * 1000/30 << " " << detection_success << " " << pose_estimate_CLM[0] << " " << pose_estimate_CLM[1] << " " << pose_estimate_CLM[2] << " " << pose_estimate_CLM[3] << " " << pose_estimate_CLM[4] << " " << pose_estimate_CLM[5] << endl;
 			}				
 
 			// output the tracked video
