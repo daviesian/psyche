@@ -17,3 +17,5 @@ lib/3rdParty/dlib/Debug/
 lib/3rdParty/dlib/Release/
 lib/local/FaceAnalyser/Release/
 lib/local/FaceAnalyser/Debug/
+lib/local/OpenCVWrappers/Release/
+lib/local/OpenCVWrappers/Debug/
