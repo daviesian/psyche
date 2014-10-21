@@ -1,0 +1,8 @@
+﻿<Window x:Class="Psyche.ChooseInput"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Psyche | Choose Input" Height="543" Width="721"
+        Loaded="Window_Loaded" WindowStartupLocation="CenterScreen" Icon="camera.ico">
+    <WrapPanel Name="camerasPanel">
+    </WrapPanel>
+</Window>

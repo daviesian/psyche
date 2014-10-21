@@ -19,3 +19,7 @@ lib/local/FaceAnalyser/Release/
 lib/local/FaceAnalyser/Debug/
 lib/local/OpenCVWrappers/Release/
 lib/local/OpenCVWrappers/Debug/
+exe/Psyche/bin/
+exe/Psyche/obj/
+lib/local/PsycheInterop/Debug/
+lib/local/PsycheInterop/Release/

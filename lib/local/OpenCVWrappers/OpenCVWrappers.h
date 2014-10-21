@@ -163,21 +163,6 @@ namespace OpenCVWrappers {
 			}
 		}
 
-		//property int ReferenceCount
-		//{
-		//	int get()
-		//	{
-		//		return referenceCount;
-		//	}
-		//	void set()
-		//	{
-		//		referenceCount = value;
-
-		//		if (referenceCount == 0)
-		//			this->Dispose();
-		//	}
-		//}
-
 		bool UpdateWriteableBitmap(WriteableBitmap^ bitmap)
 		{
 			if (bitmap == nullptr || bitmap->PixelWidth != Width || bitmap->PixelHeight != Height || bitmap->Format != Format)
