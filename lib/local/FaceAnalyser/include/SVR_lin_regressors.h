@@ -23,7 +23,7 @@ public:
 	{}
 
 	// Predict the AU from HOG appearance of the face
-	double Predict(std::vector<double>& predictions, std::vector<std::string>& names, dlib::array2d<dlib::matrix<float,31,1> >* hog);
+	void Predict(std::vector<double>& predictions, std::vector<std::string>& names, const cv::Mat_<double>& fhog_descriptor);
 
 	// Reading in the model (or adding to it)
 	void Read(std::ifstream& stream, const std::vector<std::string>& au_names);
@@ -34,11 +34,11 @@ private:
 	std::vector<std::string> AU_names;
 
 	// For normalisation
-	cv::Mat_<float> means;
+	cv::Mat_<double> means;
 	
 	// For actual prediction
-	cv::Mat_<float> support_vectors;	
-	cv::Mat_<float> biases;
+	cv::Mat_<double> support_vectors;	
+	cv::Mat_<double> biases;
 
 };
   //===========================================================================

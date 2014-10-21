@@ -115,6 +115,8 @@ int main (int argc, char **argv)
 	// The modules that are being used for tracking
 	CLMTracker::CLM clm_model(clm_parameters.model_location);	
 	
+	Psyche::FaceAnalyser face_analyser;
+
 	// If multiple video files are tracked, use this to indicate if we are done
 	bool done = false;	
 	int f_n = -1;
@@ -253,6 +255,18 @@ int main (int argc, char **argv)
 			{
 				pose_estimate_CLM = CLMTracker::GetCorrectedPoseCamera(clm_model, fx, fy, cx, cy, clm_parameters);
 			}
+
+			// Face analysis here
+			face_analyser.AddNextFrame(grayscale_image, clm_model, 0);
+			auto au_preds = face_analyser.GetCurrentAUs();
+			
+			// Print the results here (for now)
+			
+			for(auto au_it = au_preds.begin(); au_it != au_preds.end(); ++au_it)
+			{
+				cout << au_it->first << " " << au_it->second << " ";
+			}
+			cout << endl;
 
 			// Visualising the results
 			// Drawing the facial landmarks on the face and the bounding box around it if tracking is successful and initialised

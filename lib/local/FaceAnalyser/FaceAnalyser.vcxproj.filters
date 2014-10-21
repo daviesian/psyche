@@ -21,12 +21,18 @@
     <ClInclude Include="include\SVR_lin_regressors.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\Face_utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\FaceAnalyser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\SVR_lin_regressors.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Face_utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
