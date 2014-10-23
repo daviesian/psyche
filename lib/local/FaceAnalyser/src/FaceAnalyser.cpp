@@ -28,6 +28,58 @@ void FaceAnalyser::AddNextFrame(const cv::Mat_<uchar>& frame, const CLMTracker::
 
 	// Store the descriptor
 	hog_desc_frame = hog_descriptor;
+
+	ComputeRunningMedian(hog_descriptor);
+}
+
+void FaceAnalyser::ComputeRunningMedian(const cv::Mat_<double>& hog_descriptor)
+{
+	// The median update
+	if(hog_desc_hist.empty())
+	{
+		hog_desc_hist = Mat_<unsigned int>(hog_desc_frame.cols, this->num_bins, 0.0);
+	}
+
+	// Find the bins corresponding to the current descriptor
+	Mat_<uchar> hog_desc_bin;
+	hog_descriptor.convertTo(hog_desc_bin, hog_desc_bin.type(), num_bins);
+
+	// TODO rem
+	//cout << hog_descriptor(Rect(0,0,20,1)) << endl;
+	//cout << hog_desc_bin(Rect(0,0,20,1)) << endl;
+
+	for(int i = 0; i < hog_desc_hist.rows; ++i)
+	{
+		hog_desc_hist.at<unsigned int>(i, hog_desc_bin.at<uchar>(i))++;
+	}
+
+	// Update the histogram sum
+	hist_sum++;
+
+	if(hist_sum == 1)
+	{
+		hog_desc_median = hog_descriptor.clone();
+	}
+	else
+	{
+		// Recompute the median
+		int cutoff_point = (hist_sum+1)/2;
+
+		// For each dimension
+		for(int i = 0; i < hog_desc_hist.rows; ++i)
+		{
+			int cummulative_sum = 0;
+			for(int j = 0; j < hog_desc_hist.cols; ++j)
+			{
+				cummulative_sum += hog_desc_hist.at<unsigned int>(i, j);
+				if(cummulative_sum > cutoff_point)
+				{
+					hog_desc_median.at<double>(i) = j * (1.0/num_bins) + (0.5/num_bins);
+					break;
+				}
+			}
+		}
+	}
 }
 
 // Apply the current predictors to the currently stored descriptors
