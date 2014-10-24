@@ -2,7 +2,8 @@ svr_lin/AU_12.dat Smile
 svr_lin/AU_6.dat Cheek raise
 svr_lin/AU_25.dat Open mouth
 svr_lin/AU_4_dyn.dat Brow lower
-svr_lin/AU_2_dyn.dat Brow raise
+svr_lin/AU_1_dyn.dat Inner brow raise
+svr_lin/AU_2_dyn.dat Outer brow raise
 svr_lin/AU_5_dyn.dat Eyes widen
 svr_lin/AU_9_dyn.dat Nose Wrinkle
 svr_lin/AU_15_dyn.dat Frown
