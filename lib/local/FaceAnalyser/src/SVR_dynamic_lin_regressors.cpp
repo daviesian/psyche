@@ -1,10 +1,10 @@
-#include "SVR_lin_regressors.h"
+#include "SVR_dynamic_lin_regressors.h"
 
 #include "CLM_utils.h"
 
 using namespace Psyche;
 
-void SVR_lin_regressors::Read(std::ifstream& stream, const std::vector<std::string>& au_names)
+void SVR_dynamic_lin_regressors::Read(std::ifstream& stream, const std::vector<std::string>& au_names)
 {
 	// TODO check if means are the same. TODO sth wrong if not
 	CLMTracker::ReadMatBin(stream, this->means);
@@ -41,11 +41,11 @@ void SVR_lin_regressors::Read(std::ifstream& stream, const std::vector<std::stri
 }
 
 // Prediction using the HOG descriptor
-void SVR_lin_regressors::Predict(std::vector<double>& predictions, std::vector<std::string>& names, const cv::Mat_<double>& fhog_descriptor)
+void SVR_dynamic_lin_regressors::Predict(std::vector<double>& predictions, std::vector<std::string>& names, const cv::Mat_<double>& fhog_descriptor, const cv::Mat_<double>& running_median)
 {
 	if(AU_names.size() > 0)
 	{
-		Mat_<double> preds = (fhog_descriptor - this->means) * this->support_vectors + this->biases;
+		Mat_<double> preds = (fhog_descriptor - this->means - running_median) * this->support_vectors + this->biases;
 
 		// Remove below 0 and above 5 predictions
 		preds.setTo(0, preds < 0);

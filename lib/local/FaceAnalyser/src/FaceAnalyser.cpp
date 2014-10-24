@@ -18,6 +18,27 @@ using namespace std;
 
 void FaceAnalyser::AddNextFrame(const cv::Mat_<uchar>& frame, const CLMTracker::CLM& clm, double timestamp_seconds)
 {
+
+	// Check if a reset is needed first
+	if(face_bounding_box.area() > 0)
+	{
+
+		Rect_<double> new_bounding_box = clm.GetBoundingBox();
+
+		// If the box overlaps do not need a reset
+		double intersection_area = (face_bounding_box & new_bounding_box).area();
+		double union_area = face_bounding_box.area() + new_bounding_box.area() - 2 * intersection_area;
+
+		// If the model is already tracking what we're detecting ignore the detection, this is determined by amount of overlap
+		if( intersection_area/union_area < 0.5)
+		{
+			this->Reset();
+		}
+
+		face_bounding_box = new_bounding_box;
+
+	}
+
 	// First align the face
 	Mat_<uchar> aligned_face;
 	AlignFace(aligned_face, frame, clm);
@@ -30,6 +51,22 @@ void FaceAnalyser::AddNextFrame(const cv::Mat_<uchar>& frame, const CLMTracker::
 	hog_desc_frame = hog_descriptor;
 
 	ComputeRunningMedian(hog_descriptor);
+
+	if(hist_sum > adaptation_threshold)
+	{
+		is_adapting = false;
+	}
+
+}
+
+// Reset the models
+void FaceAnalyser::Reset()
+{
+	hist_sum = 0;
+	is_adapting = true;
+
+	this->hog_desc_median.setTo(Scalar(0));
+	this->hog_desc_hist = Mat_<unsigned int>(hog_desc_hist.cols, hog_desc_hist.rows, (unsigned int)0);
 }
 
 void FaceAnalyser::ComputeRunningMedian(const cv::Mat_<double>& hog_descriptor)
@@ -37,17 +74,13 @@ void FaceAnalyser::ComputeRunningMedian(const cv::Mat_<double>& hog_descriptor)
 	// The median update
 	if(hog_desc_hist.empty())
 	{
-		hog_desc_hist = Mat_<unsigned int>(hog_desc_frame.cols, this->num_bins, 0.0);
+		hog_desc_hist = Mat_<unsigned int>(hog_desc_frame.cols, this->num_bins, (unsigned int)0);
 	}
 
 	// Find the bins corresponding to the current descriptor
 	Mat_<uchar> hog_desc_bin;
 	hog_descriptor.convertTo(hog_desc_bin, hog_desc_bin.type(), num_bins);
-
-	// TODO rem
-	//cout << hog_descriptor(Rect(0,0,20,1)) << endl;
-	//cout << hog_desc_bin(Rect(0,0,20,1)) << endl;
-
+	
 	for(int i = 0; i < hog_desc_hist.rows; ++i)
 	{
 		hog_desc_hist.at<unsigned int>(i, hog_desc_bin.at<uchar>(i))++;
@@ -90,14 +123,24 @@ vector<pair<string, double>> FaceAnalyser::GetCurrentAUs()
 
 	if(!hog_desc_frame.empty())
 	{
-		vector<string> svr_lin_aus;
-		vector<double> svr_lin_preds;
+		vector<string> svr_lin_stat_aus;
+		vector<double> svr_lin_stat_preds;
 
-		AU_SVR_lin_regressors.Predict(svr_lin_preds, svr_lin_aus, hog_desc_frame);
+		AU_SVR_static_lin_regressors.Predict(svr_lin_stat_preds, svr_lin_stat_aus, hog_desc_frame);
 
-		for(int i = 0; i < svr_lin_preds.size(); ++i)
+		for(size_t i = 0; i < svr_lin_stat_preds.size(); ++i)
 		{
-			predictions.push_back(pair<string, double>(svr_lin_aus[i], svr_lin_preds[i]));
+			predictions.push_back(pair<string, double>(svr_lin_stat_aus[i], svr_lin_stat_preds[i]));
+		}
+
+		vector<string> svr_lin_dyn_aus;
+		vector<double> svr_lin_dyn_preds;
+
+		AU_SVR_dynamic_lin_regressors.Predict(svr_lin_dyn_preds, svr_lin_dyn_aus, hog_desc_frame, this->hog_desc_median);
+
+		for(size_t i = 0; i < svr_lin_dyn_preds.size(); ++i)
+		{
+			predictions.push_back(pair<string, double>(svr_lin_dyn_aus[i], svr_lin_dyn_preds[i]));
 		}
 	}
 
@@ -170,9 +213,13 @@ void FaceAnalyser::ReadRegressor(std::string fname, const vector<string>& au_nam
 	int regressor_type;
 	regressor_stream.read((char*)&regressor_type, 4);
 
-	if(regressor_type == SVR_linear)
+	if(regressor_type == SVR_static_linear)
 	{
-		AU_SVR_lin_regressors.Read(regressor_stream, au_names);		
+		AU_SVR_static_lin_regressors.Read(regressor_stream, au_names);		
+	}
+	else if(regressor_type == SVR_dynamic_linear)
+	{
+		AU_SVR_dynamic_lin_regressors.Read(regressor_stream, au_names);		
 	}
 
 }

@@ -263,12 +263,16 @@ int main (int argc, char **argv)
 				auto au_preds = face_analyser.GetCurrentAUs();
 			
 				// Print the results here (for now)
-			
+				cout << face_analyser.IsAdapting() << " ";
 				for(auto au_it = au_preds.begin(); au_it != au_preds.end(); ++au_it)
 				{
-					cout << au_it->first << " " << au_it->second << " ";
+					cout << au_it->first << " " << (int)(au_it->second+0.5) << " ";					
 				}
 				cout << endl;
+			}
+			else
+			{
+				face_analyser.Reset();
 			}
 			// Visualising the results
 			// Drawing the facial landmarks on the face and the bounding box around it if tracking is successful and initialised
