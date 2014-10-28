@@ -54,6 +54,11 @@ void FaceAnalyser::AddNextFrame(const cv::Mat_<uchar>& frame, const CLMTracker::
 
 	UpdateRunningMedian(this->hog_desc_hist, hist_count, this->hog_desc_median, hog_descriptor, this->num_bins_hog, this->min_val_hog, this->max_val_hog);
 
+	// Visualising the median HOG
+	//Mat visualisation;
+	//Psyche::Visualise_FHOG(hog_desc_median, 10, 10, visualisation);
+	//cv::imshow("FHOG median", visualisation);
+
 	// Only if geometry models are present
 	if(!AU_SVR_dynamic_geom_lin_regressors.means.empty())
 	{

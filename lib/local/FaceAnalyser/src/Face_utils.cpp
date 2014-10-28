@@ -2,6 +2,9 @@
 
 #include <CLM_utils.h>
 
+// For FHOG visualisation
+#include <dlib/gui_widgets.h>
+
 using namespace cv;
 using namespace std;
 
@@ -40,8 +43,31 @@ namespace Psyche
 		cv::warpAffine(frame, aligned_face, warp_matrix, Size(out_width, out_height), INTER_LINEAR);
 	}
 
+	void Visualise_FHOG(const cv::Mat_<double>& descriptor, int num_rows, int num_cols, cv::Mat& visualisation)
+	{
+
+		// First convert to dlib format
+		dlib::array2d<dlib::matrix<float,31,1> > hog(num_rows, num_cols);
+		
+		cv::MatConstIterator_<double> descriptor_it = descriptor.begin();
+		for(int y = 0; y < num_cols; ++y)
+		{
+			for(int x = 0; x < num_rows; ++x)
+			{
+				for(unsigned int o = 0; o < 31; ++o)
+				{
+					hog[y][x](o) = *descriptor_it++;
+				}
+			}
+		}
+
+		// Draw the FHOG to OpenCV format
+		auto fhog_vis = dlib::draw_fhog(hog);
+		visualisation = dlib::toMat(fhog_vis).clone();
+	}
+
 	// Create a row vector Felzenszwalb HOG descriptor from a given image
-	void Extract_FHOG_descriptor(cv::Mat_<double>& descriptor, cv::Mat_<uchar> image, int cell_size)
+	void Extract_FHOG_descriptor(cv::Mat_<double>& descriptor, const cv::Mat_<uchar>& image, int cell_size)
 	{
 		dlib::cv_image<uchar> dlib_warped_img(image);
 
