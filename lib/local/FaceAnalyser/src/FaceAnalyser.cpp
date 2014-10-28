@@ -54,7 +54,20 @@ void FaceAnalyser::AddNextFrame(const cv::Mat_<uchar>& frame, const CLMTracker::
 
 	UpdateRunningMedian(this->hog_desc_hist, hist_count, this->hog_desc_median, hog_descriptor, this->num_bins_hog, this->min_val_hog, this->max_val_hog);
 
+	// Only if geometry models are present
+	if(!AU_SVR_dynamic_geom_lin_regressors.means.empty())
+	{
+		// Adding the geometry descriptor 
+		geom_descriptor_frame = (clm.params_local.t() - AU_SVR_dynamic_geom_lin_regressors.means)/AU_SVR_dynamic_geom_lin_regressors.scaling;
 
+		// Some clamping
+		geom_descriptor_frame.setTo(Scalar(-3), geom_descriptor_frame < -3);
+		geom_descriptor_frame.setTo(Scalar(3), geom_descriptor_frame > 3);
+
+		hist_count--;
+		UpdateRunningMedian(this->geom_desc_hist, hist_count, this->geom_descriptor_median, geom_descriptor_frame, this->num_bins_geom, this->min_val_geom, this->max_val_geom);
+
+	}
 	this->hist_sum = hist_count;
 
 	if(hist_sum > adaptation_threshold)
@@ -72,6 +85,10 @@ void FaceAnalyser::Reset()
 
 	this->hog_desc_median.setTo(Scalar(0));
 	this->hog_desc_hist = Mat_<unsigned int>(hog_desc_hist.cols, hog_desc_hist.rows, (unsigned int)0);
+
+	this->geom_descriptor_median.setTo(Scalar(0));
+	this->geom_desc_hist = Mat_<unsigned int>(geom_desc_hist.cols, geom_desc_hist.rows, (unsigned int)0);
+
 }
 
 void FaceAnalyser::UpdateRunningMedian(cv::Mat_<unsigned int>& histogram, int& hist_count, cv::Mat_<double>& median, const cv::Mat_<double>& descriptor, int num_bins, double min_val, double max_val)
@@ -89,9 +106,10 @@ void FaceAnalyser::UpdateRunningMedian(cv::Mat_<unsigned int>& histogram, int& h
 	converted_descriptor.setTo(Scalar(num_bins-1), converted_descriptor > num_bins - 1);
 	converted_descriptor.setTo(Scalar(0), converted_descriptor < 0);
 	
-	for(int i = 0; i < hog_desc_hist.rows; ++i)
+	for(int i = 0; i < histogram.rows; ++i)
 	{
-		hog_desc_hist.at<unsigned int>(i, (int)converted_descriptor.at<double>(i))++;
+		int index = (int)converted_descriptor.at<double>(i);
+		histogram.at<unsigned int>(i, index)++;
 	}
 
 	// Update the histogram count
@@ -150,6 +168,17 @@ vector<pair<string, double>> FaceAnalyser::GetCurrentAUs()
 		{
 			predictions.push_back(pair<string, double>(svr_lin_dyn_aus[i], svr_lin_dyn_preds[i]));
 		}
+
+		vector<string> svr_lin_dyn_geom_aus;
+		vector<double> svr_lin_dyn_geom_preds;
+
+		AU_SVR_dynamic_geom_lin_regressors.Predict(svr_lin_dyn_geom_preds, svr_lin_dyn_geom_aus, this->geom_descriptor_frame, this->geom_descriptor_median);
+
+		for(size_t i = 0; i < svr_lin_dyn_geom_aus.size(); ++i)
+		{
+			predictions.push_back(pair<string, double>(svr_lin_dyn_geom_aus[i], svr_lin_dyn_geom_preds[i]));
+		}
+
 	}
 
 	return predictions;
@@ -231,7 +260,7 @@ void FaceAnalyser::ReadRegressor(std::string fname, const vector<string>& au_nam
 	}
 	else if(regressor_type == SVR_dynamic_geom_linear)
 	{
-		AU_SVR_dynamic_appearance_lin_regressors.Read(regressor_stream, au_names);		
+		AU_SVR_dynamic_geom_lin_regressors.Read(regressor_stream, au_names);		
 	}
 
 }

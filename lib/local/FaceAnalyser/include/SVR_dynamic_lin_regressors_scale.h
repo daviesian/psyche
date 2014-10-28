@@ -1,5 +1,5 @@
-#ifndef __SVRDYNAMICLINREGRESSORS_h_
-#define __SVRDYNAMICLINREGRESSORS_h_
+#ifndef __SVRDYNAMICLINREGRESSORSSCALE_h_
+#define __SVRDYNAMICLINREGRESSORSSCALE_h_
 
 #include <vector>
 #include <string>
@@ -15,11 +15,11 @@ namespace Psyche
 {
 
 // Collection of linear SVR regressors for AU prediction that uses per person face nomalisation with the help of a running median
-class SVR_dynamic_lin_regressors{
+class SVR_dynamic_lin_regressors_scale{
 
 public:
 
-	SVR_dynamic_lin_regressors()
+	SVR_dynamic_lin_regressors_scale()
 	{}
 
 	// Predict the AU from HOG appearance of the face
@@ -28,13 +28,15 @@ public:
 	// Reading in the model (or adding to it)
 	void Read(std::ifstream& stream, const std::vector<std::string>& au_names);
 
+	// For normalisation (should be done before prediction, hence they are public)
+	cv::Mat_<double> means;
+	cv::Mat_<double> scaling;
+
 private:
 
 	// The names of Action Units this model is responsible for
 	std::vector<std::string> AU_names;
 
-	// For normalisation
-	cv::Mat_<double> means;
 	
 	// For actual prediction
 	cv::Mat_<double> support_vectors;	

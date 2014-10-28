@@ -3,6 +3,7 @@
 
 #include "SVR_dynamic_lin_regressors.h"
 #include "SVR_static_lin_regressors.h"
+#include "SVR_dynamic_lin_regressors_scale.h"
 
 #include <string>
 #include <vector>
@@ -34,8 +35,8 @@ public:
 
 		// The geometry histogram ranges from -3 to 3 (as it should be zero mean and unit standard dev normalised data)
 		num_bins_geom = 400;
-		max_val_hog = 1;
-		min_val_hog = 0;
+		max_val_geom = 3;
+		min_val_geom = -3;
 
 		hist_sum = 0;
 		adaptation_threshold = 200;
@@ -71,6 +72,10 @@ private:
 	double min_val_hog;
 	double max_val_hog;
 
+	// The geometry descriptor (non-rigid shape parameters from CLM)
+	Mat_<double> geom_descriptor_frame;
+	Mat_<double> geom_descriptor_median;
+
 	Mat_<unsigned int> geom_desc_hist;
 	int num_bins_geom;
 	double min_val_geom;
@@ -96,7 +101,7 @@ private:
 	// The linear SVR regressors
 	SVR_static_lin_regressors AU_SVR_static_appearance_lin_regressors;
 	SVR_dynamic_lin_regressors AU_SVR_dynamic_appearance_lin_regressors;
-	SVR_dynamic_lin_regressors AU_SVR_dynamic_geom_lin_regressors;
+	SVR_dynamic_lin_regressors_scale AU_SVR_dynamic_geom_lin_regressors;
 	
 };
   //===========================================================================

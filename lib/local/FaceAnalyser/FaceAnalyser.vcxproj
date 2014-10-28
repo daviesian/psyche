@@ -86,6 +86,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\SVR_dynamic_lin_regressors_scale.h" />
     <ClInclude Include="include\SVR_dynamic_lin_regressors.h" />
     <ClInclude Include="include\SVR_static_lin_regressors.h" />
     <ClInclude Include="include\FaceAnalyser.h" />
@@ -97,6 +98,7 @@
     <ClCompile Include="src\FaceAnalyser.cpp" />
     <ClCompile Include="src\Face_utils.cpp" />
     <ClCompile Include="src\SVR_dynamic_lin_regressors.cpp" />
+    <ClCompile Include="src\SVR_dynamic_lin_regressors_scale.cpp" />
     <ClCompile Include="src\SVR_static_lin_regressors.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
