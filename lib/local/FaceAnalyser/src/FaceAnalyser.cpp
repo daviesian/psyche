@@ -50,7 +50,12 @@ void FaceAnalyser::AddNextFrame(const cv::Mat_<uchar>& frame, const CLMTracker::
 	// Store the descriptor
 	hog_desc_frame = hog_descriptor;
 
-	ComputeRunningMedian(hog_descriptor);
+	int hist_count = this->hist_sum;
+
+	UpdateRunningMedian(this->hog_desc_hist, hist_count, this->hog_desc_median, hog_descriptor, this->num_bins_hog, this->min_val_hog, this->max_val_hog);
+
+
+	this->hist_sum = hist_count;
 
 	if(hist_sum > adaptation_threshold)
 	{
@@ -69,45 +74,48 @@ void FaceAnalyser::Reset()
 	this->hog_desc_hist = Mat_<unsigned int>(hog_desc_hist.cols, hog_desc_hist.rows, (unsigned int)0);
 }
 
-void FaceAnalyser::ComputeRunningMedian(const cv::Mat_<double>& hog_descriptor)
+void FaceAnalyser::UpdateRunningMedian(cv::Mat_<unsigned int>& histogram, int& hist_count, cv::Mat_<double>& median, const cv::Mat_<double>& descriptor, int num_bins, double min_val, double max_val)
 {
 	// The median update
-	if(hog_desc_hist.empty())
+	if(histogram.empty())
 	{
-		hog_desc_hist = Mat_<unsigned int>(hog_desc_frame.cols, this->num_bins, (unsigned int)0);
+		histogram = Mat_<unsigned int>(descriptor.cols, num_bins, (unsigned int)0);
 	}
 
 	// Find the bins corresponding to the current descriptor
-	Mat_<uchar> hog_desc_bin;
-	hog_descriptor.convertTo(hog_desc_bin, hog_desc_bin.type(), num_bins);
+	Mat_<double> converted_descriptor = (descriptor - min_val)*((double)num_bins)/(max_val - min_val);
+
+	// Capping the top and bottom values
+	converted_descriptor.setTo(Scalar(num_bins-1), converted_descriptor > num_bins - 1);
+	converted_descriptor.setTo(Scalar(0), converted_descriptor < 0);
 	
 	for(int i = 0; i < hog_desc_hist.rows; ++i)
 	{
-		hog_desc_hist.at<unsigned int>(i, hog_desc_bin.at<uchar>(i))++;
+		hog_desc_hist.at<unsigned int>(i, (int)converted_descriptor.at<double>(i))++;
 	}
 
-	// Update the histogram sum
-	hist_sum++;
+	// Update the histogram count
+	hist_count++;
 
-	if(hist_sum == 1)
+	if(hist_count == 1)
 	{
-		hog_desc_median = hog_descriptor.clone();
+		median = descriptor.clone();
 	}
 	else
 	{
 		// Recompute the median
-		int cutoff_point = (hist_sum+1)/2;
+		int cutoff_point = (hist_count + 1)/2;
 
 		// For each dimension
-		for(int i = 0; i < hog_desc_hist.rows; ++i)
+		for(int i = 0; i < histogram.rows; ++i)
 		{
 			int cummulative_sum = 0;
-			for(int j = 0; j < hog_desc_hist.cols; ++j)
+			for(int j = 0; j < histogram.cols; ++j)
 			{
-				cummulative_sum += hog_desc_hist.at<unsigned int>(i, j);
+				cummulative_sum += histogram.at<unsigned int>(i, j);
 				if(cummulative_sum > cutoff_point)
 				{
-					hog_desc_median.at<double>(i) = j * (1.0/num_bins) + (0.5/num_bins);
+					median.at<double>(i) = min_val + j * (max_val/num_bins) + (0.5*(max_val-min_val)/num_bins);
 					break;
 				}
 			}
@@ -126,7 +134,7 @@ vector<pair<string, double>> FaceAnalyser::GetCurrentAUs()
 		vector<string> svr_lin_stat_aus;
 		vector<double> svr_lin_stat_preds;
 
-		AU_SVR_static_lin_regressors.Predict(svr_lin_stat_preds, svr_lin_stat_aus, hog_desc_frame);
+		AU_SVR_static_appearance_lin_regressors.Predict(svr_lin_stat_preds, svr_lin_stat_aus, hog_desc_frame);
 
 		for(size_t i = 0; i < svr_lin_stat_preds.size(); ++i)
 		{
@@ -136,7 +144,7 @@ vector<pair<string, double>> FaceAnalyser::GetCurrentAUs()
 		vector<string> svr_lin_dyn_aus;
 		vector<double> svr_lin_dyn_preds;
 
-		AU_SVR_dynamic_lin_regressors.Predict(svr_lin_dyn_preds, svr_lin_dyn_aus, hog_desc_frame, this->hog_desc_median);
+		AU_SVR_dynamic_appearance_lin_regressors.Predict(svr_lin_dyn_preds, svr_lin_dyn_aus, hog_desc_frame, this->hog_desc_median);
 
 		for(size_t i = 0; i < svr_lin_dyn_preds.size(); ++i)
 		{
@@ -213,13 +221,17 @@ void FaceAnalyser::ReadRegressor(std::string fname, const vector<string>& au_nam
 	int regressor_type;
 	regressor_stream.read((char*)&regressor_type, 4);
 
-	if(regressor_type == SVR_static_linear)
+	if(regressor_type == SVR_appearance_static_linear)
 	{
-		AU_SVR_static_lin_regressors.Read(regressor_stream, au_names);		
+		AU_SVR_static_appearance_lin_regressors.Read(regressor_stream, au_names);		
 	}
-	else if(regressor_type == SVR_dynamic_linear)
+	else if(regressor_type == SVR_appearance_dynamic_linear)
 	{
-		AU_SVR_dynamic_lin_regressors.Read(regressor_stream, au_names);		
+		AU_SVR_dynamic_appearance_lin_regressors.Read(regressor_stream, au_names);		
+	}
+	else if(regressor_type == SVR_dynamic_geom_linear)
+	{
+		AU_SVR_dynamic_appearance_lin_regressors.Read(regressor_stream, au_names);		
 	}
 
 }

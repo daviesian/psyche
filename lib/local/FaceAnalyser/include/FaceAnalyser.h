@@ -19,7 +19,7 @@ class FaceAnalyser{
 public:
 
 
-	enum RegressorType{ SVR_static_linear = 0, SVR_dynamic_linear = 1};
+	enum RegressorType{ SVR_appearance_static_linear = 0, SVR_appearance_dynamic_linear = 1, SVR_dynamic_geom_linear = 2, SVR_combined_linear = 3};
 
 	// Constructor from a model file (or a default one if not provided
 	FaceAnalyser(std::string fname = "AU_regressors/AU_regressors.txt")
@@ -27,8 +27,16 @@ public:
 		this->Read(fname);
 		
 		// Initialise the histograms that will represent bins from 0 - 1 (as HoG values are only stored as those)
-		// Set the number of bins for the histograms (as it will be stored as a uchar)
-		num_bins = 256;
+		// Set the number of bins for the histograms
+		num_bins_hog = 300;
+		max_val_hog = 1;
+		min_val_hog = 0;
+
+		// The geometry histogram ranges from -3 to 3 (as it should be zero mean and unit standard dev normalised data)
+		num_bins_geom = 400;
+		max_val_hog = 1;
+		min_val_hog = 0;
+
 		hist_sum = 0;
 		adaptation_threshold = 200;
 		is_adapting = true;
@@ -59,7 +67,15 @@ private:
 
 	// Use histograms for quick (but approximate) median computation
 	Mat_<unsigned int> hog_desc_hist;
-	int num_bins;
+	int num_bins_hog;
+	double min_val_hog;
+	double max_val_hog;
+
+	Mat_<unsigned int> geom_desc_hist;
+	int num_bins_geom;
+	double min_val_geom;
+	double max_val_geom;
+
 	int hist_sum;
 
 	// Keeping track if the model is still adapting to a face
@@ -73,12 +89,15 @@ private:
 
 	void ReadRegressor(std::string fname, const vector<string>& au_names);
 
-	void ComputeRunningMedian(const cv::Mat_<double>& hog_desc);
+	// A utility function for keeping track of approximate running medians used for AU and emotion inference using a set of histograms (the histograms are evenly spaced from min_val to max_val)
+	// Descriptor has to be a row vector
+	void UpdateRunningMedian(cv::Mat_<unsigned int>& histogram, int& hist_sum, cv::Mat_<double>& median, const cv::Mat_<double>& descriptor, int num_bins, double min_val, double max_val);
 
 	// The linear SVR regressors
-	SVR_static_lin_regressors AU_SVR_static_lin_regressors;
-	SVR_dynamic_lin_regressors AU_SVR_dynamic_lin_regressors;
-
+	SVR_static_lin_regressors AU_SVR_static_appearance_lin_regressors;
+	SVR_dynamic_lin_regressors AU_SVR_dynamic_appearance_lin_regressors;
+	SVR_dynamic_lin_regressors AU_SVR_dynamic_geom_lin_regressors;
+	
 };
   //===========================================================================
 }
