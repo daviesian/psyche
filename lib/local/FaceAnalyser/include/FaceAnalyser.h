@@ -40,6 +40,8 @@ public:
 
 		hist_sum = 0;
 		adaptation_threshold = 200;
+		prediction_correction_count = 0;
+
 		is_adapting = true;
 	}
 
@@ -103,6 +105,13 @@ private:
 	SVR_dynamic_lin_regressors AU_SVR_dynamic_appearance_lin_regressors;
 	SVR_dynamic_lin_regressors_scale AU_SVR_dynamic_geom_lin_regressors;
 	
+	// The AUs predicted by the model are not always 0 calibrated to a person. That is don't always predict 0 for a neutral expression
+	// Keeping track of the predictions we can correct for this, by assuming that at least "ratio" of frames are neutral and subtract that value of prediction, only perform the correction after min_frames
+	void UpdatePredictionTrack(vector<double>& correction, const vector<pair<string, double>>& predictions, double ratio=0.25, int num_bins = 200, double min_val = 0, double max_val = 5, int min_frames = 10);
+
+	cv::Mat_<unsigned int> prediction_correction_histogram;
+	int prediction_correction_count;
+
 };
   //===========================================================================
 }

@@ -10,6 +10,50 @@ using namespace std;
 
 namespace Psyche
 {
+
+	// Pick only the more stable/rigid points under changes of expression
+	void extract_rigid_points(Mat_<double>& source_points, Mat_<double>& destination_points)
+	{
+		if(source_points.rows == 68)
+		{
+			Mat_<double> tmp_source = source_points.clone();
+			source_points = Mat_<double>();
+
+			// Push back the rigid points (some face outline, eyes, and nose)
+			source_points.push_back(tmp_source.row(0));
+			source_points.push_back(tmp_source.row(2));
+			source_points.push_back(tmp_source.row(14));
+			source_points.push_back(tmp_source.row(16));
+			source_points.push_back(tmp_source.row(36));
+			source_points.push_back(tmp_source.row(39));
+			source_points.push_back(tmp_source.row(43));
+			source_points.push_back(tmp_source.row(38));
+			source_points.push_back(tmp_source.row(42));
+			source_points.push_back(tmp_source.row(45));
+			source_points.push_back(tmp_source.row(31));
+			source_points.push_back(tmp_source.row(33));
+			source_points.push_back(tmp_source.row(35));
+
+			Mat_<double> tmp_dest = destination_points.clone();
+			destination_points = Mat_<double>();
+
+			// Push back the rigid points
+			destination_points.push_back(tmp_dest.row(0));
+			destination_points.push_back(tmp_dest.row(2));
+			destination_points.push_back(tmp_dest.row(14));
+			destination_points.push_back(tmp_dest.row(16));
+			destination_points.push_back(tmp_dest.row(36));
+			destination_points.push_back(tmp_dest.row(39));
+			destination_points.push_back(tmp_dest.row(43));
+			destination_points.push_back(tmp_dest.row(38));
+			destination_points.push_back(tmp_dest.row(42));
+			destination_points.push_back(tmp_dest.row(45));
+			destination_points.push_back(tmp_dest.row(31));
+			destination_points.push_back(tmp_dest.row(33));
+			destination_points.push_back(tmp_dest.row(35));
+		}
+	}
+
 	// Aligning a face to a common reference frame
 	void AlignFace(cv::Mat& aligned_face, const cv::Mat& frame, const CLMTracker::CLM& clm_model, double sim_scale, int out_width, int out_height)
 	{
@@ -21,6 +65,9 @@ namespace Psyche
 
 		Mat_<double> source_landmarks = clm_model.detected_landmarks.reshape(1, 2).t();
 		Mat_<double> destination_landmarks = similarity_normalised_shape.reshape(1, 2).t();
+
+		// Aligning only the more rigid points
+		extract_rigid_points(source_landmarks, destination_landmarks);
 
 		Matx22d scale_rot_matrix = CLMTracker::AlignShapesWithScale(source_landmarks, destination_landmarks);
 		Matx23d warp_matrix;

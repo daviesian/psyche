@@ -94,6 +94,8 @@ void FaceAnalyser::Reset()
 	this->geom_descriptor_median.setTo(Scalar(0));
 	this->geom_desc_hist = Mat_<unsigned int>(geom_desc_hist.cols, geom_desc_hist.rows, (unsigned int)0);
 
+	this->prediction_correction_count = 0;
+	this->prediction_correction_histogram = Mat_<unsigned int>(prediction_correction_histogram.cols, prediction_correction_histogram.rows, (unsigned int)0);
 }
 
 void FaceAnalyser::UpdateRunningMedian(cv::Mat_<unsigned int>& histogram, int& hist_count, cv::Mat_<double>& median, const cv::Mat_<double>& descriptor, int num_bins, double min_val, double max_val)
@@ -184,6 +186,14 @@ vector<pair<string, double>> FaceAnalyser::GetCurrentAUs()
 			predictions.push_back(pair<string, double>(svr_lin_dyn_geom_aus[i], svr_lin_dyn_geom_preds[i]));
 		}
 
+		vector<double> correction;
+		UpdatePredictionTrack(correction, predictions);
+
+		for(size_t i = 0; i < predictions.size(); ++i)
+		{
+			predictions[i].second = predictions[i].second - correction[i];
+		}
+
 	}
 
 	return predictions;
@@ -245,6 +255,59 @@ void FaceAnalyser::Read(std::string face_analyser_loc)
 		ReadRegressor(location, au_names);
 	}
   
+}
+
+void FaceAnalyser::UpdatePredictionTrack(vector<double>& correction, const vector<pair<string, double>>& predictions, double ratio, int num_bins, double min_val, double max_val, int min_frames)
+{
+		// The median update
+	if(prediction_correction_histogram.empty())
+	{
+		prediction_correction_histogram = Mat_<unsigned int>(predictions.size(), num_bins, (unsigned int)0);
+	}
+	
+	for(int i = 0; i < prediction_correction_histogram.rows; ++i)
+	{
+		// Find the bins corresponding to the current descriptor
+		int index = (predictions[i].second - min_val)*((double)num_bins)/(max_val - min_val);
+		if(index < 0)
+		{
+			index = 0;
+		}
+		else if(index > num_bins - 1)
+		{
+			index = num_bins - 1;
+		}
+		prediction_correction_histogram.at<unsigned int>(i, index)++;
+	}
+
+	// Update the histogram count
+	prediction_correction_count++;
+
+	if(prediction_correction_count >= min_frames)
+	{
+		// Recompute the correction
+		int cutoff_point = ratio * prediction_correction_count;
+
+		// For each dimension
+		for(int i = 0; i < prediction_correction_histogram.rows; ++i)
+		{
+			int cummulative_sum = 0;
+			for(int j = 0; j < prediction_correction_histogram.cols; ++j)
+			{
+				cummulative_sum += prediction_correction_histogram.at<unsigned int>(i, j);
+				if(cummulative_sum > cutoff_point)
+				{
+					double corr = min_val + j * (max_val/num_bins);
+					correction.push_back(corr);
+					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		correction.resize(predictions.size(), 0);
+	}
 }
 
 void FaceAnalyser::ReadRegressor(std::string fname, const vector<string>& au_names)
