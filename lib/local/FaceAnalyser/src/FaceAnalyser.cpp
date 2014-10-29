@@ -43,6 +43,8 @@ void FaceAnalyser::AddNextFrame(const cv::Mat_<uchar>& frame, const CLMTracker::
 	Mat_<uchar> aligned_face;
 	AlignFace(aligned_face, frame, clm);
 	
+	//imshow("Aligned face", aligned_face);
+
 	// Extract HOG descriptor from the frame and convert it to a useable format
 	Mat_<double> hog_descriptor;
 	Extract_FHOG_descriptor(hog_descriptor, aligned_face);
@@ -96,6 +98,8 @@ void FaceAnalyser::Reset()
 
 	this->prediction_correction_count = 0;
 	this->prediction_correction_histogram = Mat_<unsigned int>(prediction_correction_histogram.cols, prediction_correction_histogram.rows, (unsigned int)0);
+
+	dyn_scaling = vector<double>(dyn_scaling.size(), 5.0);
 }
 
 void FaceAnalyser::UpdateRunningMedian(cv::Mat_<unsigned int>& histogram, int& hist_count, cv::Mat_<double>& median, const cv::Mat_<double>& descriptor, int num_bins, double min_val, double max_val)
@@ -186,14 +190,47 @@ vector<pair<string, double>> FaceAnalyser::GetCurrentAUs()
 			predictions.push_back(pair<string, double>(svr_lin_dyn_geom_aus[i], svr_lin_dyn_geom_preds[i]));
 		}
 
+		// Correction that drags the predicion to 0
 		vector<double> correction;
 		UpdatePredictionTrack(correction, predictions);
 
 		for(size_t i = 0; i < predictions.size(); ++i)
 		{
 			predictions[i].second = predictions[i].second - correction[i];
+
+			if(predictions[i].second < 0)
+			{
+				predictions[i].second = 0;
+			}
 		}
 
+		// Some scaling for effect (not really scientific though)
+		// TODO this is ad-hoc, not neat, but nice for demos
+		if(dyn_scaling.empty())
+		{
+			dyn_scaling = vector<double>(predictions.size(), 5.0);
+		}
+		
+		for(size_t i = 0; i < predictions.size(); ++i)
+		{
+			// First establish presence (assume it is maximum as we have not seen max) TODO this could be more robust
+			if(predictions[i].second > 1)
+			{
+				double scaling_curr = 5.0 / predictions[i].second;
+				
+				if(scaling_curr < dyn_scaling[i])
+				{
+					dyn_scaling[i] = scaling_curr;
+				}
+				predictions[i].second = predictions[i].second * dyn_scaling[i];
+			}
+
+			if(predictions[i].second > 5)
+			{
+				predictions[i].second = 5;
+			}
+		}
+		cout << endl;
 	}
 
 	return predictions;

@@ -112,6 +112,9 @@ private:
 	cv::Mat_<unsigned int> prediction_correction_histogram;
 	int prediction_correction_count;
 
+	// Some dynamic scaling TODO more sciency
+	vector<double> dyn_scaling;
+
 };
   //===========================================================================
 }
