@@ -153,7 +153,7 @@ void FaceAnalyser::UpdateRunningMedian(cv::Mat_<unsigned int>& histogram, int& h
 }
 
 // Apply the current predictors to the currently stored descriptors
-vector<pair<string, double>> FaceAnalyser::GetCurrentAUs()
+vector<pair<string, double>> FaceAnalyser::GetCurrentAUs(bool dyn_correct)
 {
 
 	vector<pair<string, double>> predictions;
@@ -204,33 +204,35 @@ vector<pair<string, double>> FaceAnalyser::GetCurrentAUs()
 			}
 		}
 
-		// Some scaling for effect (not really scientific though)
-		// TODO this is ad-hoc, not neat, but nice for demos
-		if(dyn_scaling.empty())
+		if(dyn_correct)
 		{
-			dyn_scaling = vector<double>(predictions.size(), 5.0);
-		}
+			// Some scaling for effect (not really scientific though)
+			// TODO this is ad-hoc, not neat, but nice for demos
+			if(dyn_scaling.empty())
+			{
+				dyn_scaling = vector<double>(predictions.size(), 5.0);
+			}
 		
-		for(size_t i = 0; i < predictions.size(); ++i)
-		{
-			// First establish presence (assume it is maximum as we have not seen max) TODO this could be more robust
-			if(predictions[i].second > 1)
+			for(size_t i = 0; i < predictions.size(); ++i)
 			{
-				double scaling_curr = 5.0 / predictions[i].second;
-				
-				if(scaling_curr < dyn_scaling[i])
+				// First establish presence (assume it is maximum as we have not seen max) TODO this could be more robust
+				if(predictions[i].second > 1)
 				{
-					dyn_scaling[i] = scaling_curr;
+					double scaling_curr = 5.0 / predictions[i].second;
+				
+					if(scaling_curr < dyn_scaling[i])
+					{
+						dyn_scaling[i] = scaling_curr;
+					}
+					predictions[i].second = predictions[i].second * dyn_scaling[i];
 				}
-				predictions[i].second = predictions[i].second * dyn_scaling[i];
-			}
 
-			if(predictions[i].second > 5)
-			{
-				predictions[i].second = 5;
+				if(predictions[i].second > 5)
+				{
+					predictions[i].second = 5;
+				}
 			}
 		}
-		cout << endl;
 	}
 
 	return predictions;

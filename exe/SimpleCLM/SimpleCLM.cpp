@@ -203,6 +203,13 @@ int main (int argc, char **argv)
 		int64 t1,t0 = cv::getTickCount();
 		double fps = 10;
 
+		double fps_vid = video_capture.get(CV_CAP_PROP_FPS);
+
+		if(fps_vid == 0.0)
+		{
+			fps_vid = 30;
+		}
+
 		INFO_STREAM( "Starting tracking");
 		while(!captured_image.empty())
 		{		
@@ -256,12 +263,14 @@ int main (int argc, char **argv)
 				pose_estimate_CLM = CLMTracker::GetCorrectedPoseCamera(clm_model, fx, fy, cx, cy, clm_parameters);
 			}
 
+			vector<pair<string,double>> au_preds;
 			// Face analysis here
 			if(detection_success)
 			{
 				face_analyser.AddNextFrame(grayscale_image, clm_model, 0);
-				auto au_preds = face_analyser.GetCurrentAUs();
-			
+							
+				au_preds = face_analyser.GetCurrentAUs();
+
 				// Print the results here (for now)
 				cout << face_analyser.IsAdapting() << " ";
 				for(auto au_it = au_preds.begin(); au_it != au_preds.end(); ++au_it)
@@ -269,11 +278,27 @@ int main (int argc, char **argv)
 					cout << au_it->first << " " << (int)(au_it->second+0.5) << " ";					
 				}
 				cout << endl;
+
 			}
 			else
 			{
 				face_analyser.Reset();
+				face_analyser.AddNextFrame(grayscale_image, clm_model, 0);
+				au_preds = face_analyser.GetCurrentAUs();
 			}
+			
+
+			// Output the estimated head pose
+			if(!pose_output_files.empty())
+			{
+				pose_output_file << frame_count + 1 << " " << (float)frame_count /fps_vid  << " " << detection_success << " ";
+				
+				for(auto au_it = au_preds.begin(); au_it != au_preds.end(); ++au_it)
+				{
+					pose_output_file << au_it->second << " ";					
+				}
+				pose_output_file << endl;
+			}		
 			// Visualising the results
 			// Drawing the facial landmarks on the face and the bounding box around it if tracking is successful and initialised
 			double detection_certainty = clm_model.detection_certainty;
@@ -340,11 +365,7 @@ int main (int argc, char **argv)
 				landmarks_output_file << endl;
 			}
 
-			// Output the estimated head pose
-			if(!pose_output_files.empty())
-			{
-				pose_output_file << frame_count + 1 << " " << (float)frame_count * 1000/30 << " " << detection_success << " " << pose_estimate_CLM[0] << " " << pose_estimate_CLM[1] << " " << pose_estimate_CLM[2] << " " << pose_estimate_CLM[3] << " " << pose_estimate_CLM[4] << " " << pose_estimate_CLM[5] << endl;
-			}				
+		
 
 			// output the tracked video
 			if(!tracked_videos_output.empty())

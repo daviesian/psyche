@@ -53,7 +53,7 @@ public:
 
 	double GetCurrentValence();
 
-	std::vector<std::pair<std::string, double>> GetCurrentAUs();
+	std::vector<std::pair<std::string, double>> GetCurrentAUs(bool dyn_correct = true);
 
 	void Reset();
 
