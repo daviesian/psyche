@@ -272,7 +272,7 @@ int main (int argc, char **argv)
 				au_preds = face_analyser.GetCurrentAUs();
 
 				// Print the results here (for now)
-				cout << face_analyser.IsAdapting() << " ";
+				cout << face_analyser.GetConfidence() << " ";
 				for(auto au_it = au_preds.begin(); au_it != au_preds.end(); ++au_it)
 				{
 					cout << au_it->first << " " << (int)(au_it->second+0.5) << " ";					

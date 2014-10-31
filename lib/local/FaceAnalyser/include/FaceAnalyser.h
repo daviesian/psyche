@@ -57,7 +57,18 @@ public:
 
 	void Reset();
 
-	bool IsAdapting(){return is_adapting;}
+	double GetConfidence()
+	{
+		double confidence = hist_sum / 100.0;
+
+		if(confidence > 1)
+		{
+			confidence = 1;
+		}
+
+		return confidence;
+
+	}
 
 private:
 

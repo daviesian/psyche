@@ -327,7 +327,7 @@ void FaceAnalyser::UpdatePredictionTrack(vector<double>& correction, const vecto
 		// Recompute the correction
 		int cutoff_point = ratio * prediction_correction_count;
 
-		// For each dimension
+		// For each dimension // TODO potential bug here
 		for(int i = 0; i < prediction_correction_histogram.rows; ++i)
 		{
 			int cummulative_sum = 0;
