@@ -364,9 +364,7 @@ int main (int argc, char **argv)
 				}
 				landmarks_output_file << endl;
 			}
-
 		
-
 			// output the tracked video
 			if(!tracked_videos_output.empty())
 			{		
@@ -382,6 +380,7 @@ int main (int argc, char **argv)
 			if(character_press == 'r')
 			{
 				clm_model.Reset();
+				face_analyser.Reset();
 			}
 			// quit the application
 			else if(character_press=='q')

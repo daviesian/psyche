@@ -138,4 +138,40 @@ namespace Psyche
 			}
 		}
 	}
+
+	// Extract summary statistics (mean, stdev, min, max) from each dimension of a descriptor, each row is a descriptor
+	void ExtractSummaryStatistics(const cv::Mat_<double>& descriptors, cv::Mat_<double> sum_stats)
+	{
+		// Using four summary statistics at the moment 
+		// Means, stds, mins, maxs
+		int num_stats = 4;
+
+		sum_stats = Mat_<double>(1, descriptors.cols * num_stats, 0.0);
+		for(int i = 0; i < descriptors.cols; ++i)
+		{
+			Scalar mean, stdev;
+			cv::meanStdDev(descriptors.col(i), mean, stdev);
+			sum_stats.at<double>(0, i*num_stats) = mean[0];
+			sum_stats.at<double>(0, i*num_stats + 1) = stdev[0];
+
+			double min, max;
+			cv::minMaxIdx(descriptors.col(i), &min, &max);
+			sum_stats.at<double>(0, i*num_stats + 2) = min;
+			sum_stats.at<double>(0, i*num_stats + 3) = max;
+		
+		}		
+	}
+
+	void AddDescriptor(cv::Mat_<double>& descriptors, cv::Mat_<double> new_descriptor, int curr_frame, int num_frames_to_keep)
+	{
+		if(descriptors.empty())
+		{
+			descriptors = Mat_<double>(num_frames_to_keep, new_descriptor.cols, 0.0);
+		}
+
+		int row_to_change = curr_frame % num_frames_to_keep;
+
+		new_descriptor.copyTo(descriptors.row(row_to_change));
+	}	
+
 }

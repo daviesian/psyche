@@ -53,7 +53,7 @@ public:
 
 	double GetCurrentValence();
 
-	std::vector<std::pair<std::string, double>> GetCurrentAUs(bool dyn_correct = true);
+	std::vector<std::pair<std::string, double>> GetCurrentAUs();
 
 	void Reset();
 
@@ -71,6 +71,9 @@ public:
 	}
 
 private:
+
+	// Where the predictions are kept
+	std::vector<std::pair<std::string, double>> AU_predictions;
 
 	// Private members to be used for predictions
 	// The HOG descriptor of the last frame
@@ -103,6 +106,9 @@ private:
 	// Using the bounding box of previous analysed frame to determine if a reset is needed
 	Rect_<double> face_bounding_box;
 	
+	// The AU predictions internally
+	std::vector<std::pair<std::string, double>> PredictCurrentAUs(bool dyn_correct = true);
+
 	void Read(std::string fname);
 
 	void ReadRegressor(std::string fname, const vector<string>& au_names);
@@ -125,6 +131,9 @@ private:
 
 	// Some dynamic scaling TODO more sciency
 	vector<double> dyn_scaling;
+
+	// Keeping track of predictions for summary stats
+	cv::Mat_<double> AU_prediction_track;
 
 };
   //===========================================================================

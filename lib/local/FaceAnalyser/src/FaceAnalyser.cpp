@@ -82,6 +82,22 @@ void FaceAnalyser::AddNextFrame(const cv::Mat_<uchar>& frame, const CLMTracker::
 		is_adapting = false;
 	}
 
+	// Perform AU prediction
+	AU_predictions = PredictCurrentAUs(true);
+
+	// Can update the AU prediction track (used for predicting emotions)
+
+	// Pick out the predictions
+	Mat_<double> preds(1, AU_predictions.size(), 0.0);
+	for( size_t i = 0; i < AU_predictions.size(); ++i)
+	{
+		preds.at<double>(0, i) = AU_predictions[i].second;
+	}
+
+	AddDescriptor(AU_prediction_track, preds, hist_sum - 1);
+	Mat_<double> sum_stats_AU;
+	ExtractSummaryStatistics(AU_prediction_track, sum_stats_AU);
+
 }
 
 // Reset the models
@@ -91,15 +107,18 @@ void FaceAnalyser::Reset()
 	is_adapting = true;
 
 	this->hog_desc_median.setTo(Scalar(0));
-	this->hog_desc_hist = Mat_<unsigned int>(hog_desc_hist.cols, hog_desc_hist.rows, (unsigned int)0);
+	this->hog_desc_hist = Mat_<unsigned int>(hog_desc_hist.rows, hog_desc_hist.cols, (unsigned int)0);
 
 	this->geom_descriptor_median.setTo(Scalar(0));
-	this->geom_desc_hist = Mat_<unsigned int>(geom_desc_hist.cols, geom_desc_hist.rows, (unsigned int)0);
+	this->geom_desc_hist = Mat_<unsigned int>(geom_desc_hist.rows, geom_desc_hist.cols, (unsigned int)0);
 
 	this->prediction_correction_count = 0;
-	this->prediction_correction_histogram = Mat_<unsigned int>(prediction_correction_histogram.cols, prediction_correction_histogram.rows, (unsigned int)0);
+	this->prediction_correction_histogram = Mat_<unsigned int>(prediction_correction_histogram.rows, prediction_correction_histogram.cols, (unsigned int)0);
 
 	dyn_scaling = vector<double>(dyn_scaling.size(), 5.0);
+
+	AU_prediction_track = Mat_<double>(AU_prediction_track.rows, AU_prediction_track.cols, 0.0);
+
 }
 
 void FaceAnalyser::UpdateRunningMedian(cv::Mat_<unsigned int>& histogram, int& hist_count, cv::Mat_<double>& median, const cv::Mat_<double>& descriptor, int num_bins, double min_val, double max_val)
@@ -153,7 +172,7 @@ void FaceAnalyser::UpdateRunningMedian(cv::Mat_<unsigned int>& histogram, int& h
 }
 
 // Apply the current predictors to the currently stored descriptors
-vector<pair<string, double>> FaceAnalyser::GetCurrentAUs(bool dyn_correct)
+vector<pair<string, double>> FaceAnalyser::PredictCurrentAUs(bool dyn_correct)
 {
 
 	vector<pair<string, double>> predictions;
@@ -191,10 +210,10 @@ vector<pair<string, double>> FaceAnalyser::GetCurrentAUs(bool dyn_correct)
 		}
 
 		// Correction that drags the predicion to 0
-		vector<double> correction;
+		vector<double> correction(predictions.size(), 0.0);
 		UpdatePredictionTrack(correction, predictions);
 
-		for(size_t i = 0; i < predictions.size(); ++i)
+		for(size_t i = 0; i < correction.size(); ++i)
 		{
 			predictions[i].second = predictions[i].second - correction[i];
 
@@ -236,6 +255,11 @@ vector<pair<string, double>> FaceAnalyser::GetCurrentAUs(bool dyn_correct)
 	}
 
 	return predictions;
+}
+
+vector<pair<string, double>> FaceAnalyser::GetCurrentAUs()
+{
+	return AU_predictions;
 }
 
 // The main constructor of the face analyser using 
@@ -298,7 +322,10 @@ void FaceAnalyser::Read(std::string face_analyser_loc)
 
 void FaceAnalyser::UpdatePredictionTrack(vector<double>& correction, const vector<pair<string, double>>& predictions, double ratio, int num_bins, double min_val, double max_val, int min_frames)
 {
-		// The median update
+	
+	correction.resize(predictions.size(), 0);
+
+	// The median update
 	if(prediction_correction_histogram.empty())
 	{
 		prediction_correction_histogram = Mat_<unsigned int>(predictions.size(), num_bins, (unsigned int)0);
@@ -327,7 +354,7 @@ void FaceAnalyser::UpdatePredictionTrack(vector<double>& correction, const vecto
 		// Recompute the correction
 		int cutoff_point = ratio * prediction_correction_count;
 
-		// For each dimension // TODO potential bug here
+		// For each dimension
 		for(int i = 0; i < prediction_correction_histogram.rows; ++i)
 		{
 			int cummulative_sum = 0;
@@ -337,15 +364,11 @@ void FaceAnalyser::UpdatePredictionTrack(vector<double>& correction, const vecto
 				if(cummulative_sum > cutoff_point)
 				{
 					double corr = min_val + j * (max_val/num_bins);
-					correction.push_back(corr);
+					correction[i] = corr;
 					break;
 				}
 			}
 		}
-	}
-	else
-	{
-		correction.resize(predictions.size(), 0);
 	}
 }
 
