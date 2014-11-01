@@ -135,6 +135,9 @@ private:
 	// Keeping track of predictions for summary stats
 	cv::Mat_<double> AU_prediction_track;
 
+	// Keep track of the current time
+	double current_time_seconds;
+
 };
   //===========================================================================
 }

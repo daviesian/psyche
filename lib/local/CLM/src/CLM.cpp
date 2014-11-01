@@ -254,6 +254,16 @@ void CLM::Reset()
 	face_template = Mat_<uchar>();
 }
 
+// Resetting the model, choosing the face nearest (x,y)
+void CLM::Reset(double x, double y)
+{
+	// x and y are each between 0 and 1.
+
+	// TODO: Implement this function
+
+	cout << "Resetting to (" << x << ", " << y << ")" << endl;
+}
+
 // The main internal landmark detection call (should not be used externally?)
 bool CLM::DetectLandmarks(const Mat_<uchar> &image, const Mat_<float> &depth, CLMParameters& params)
 {

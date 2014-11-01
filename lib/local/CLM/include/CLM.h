@@ -302,6 +302,9 @@ public:
 	// Reset the model (useful if we want to completelly reinitialise, or we want to track another video)
 	void Reset();
 
+	// Reset the model, choosing the face nearest (x,y) where x and y are between 0 and 1.
+	void Reset(double x, double y);
+
 	// Reading the model in
 	void Read(string name);
 

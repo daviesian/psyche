@@ -98,6 +98,7 @@ void FaceAnalyser::AddNextFrame(const cv::Mat_<uchar>& frame, const CLMTracker::
 	Mat_<double> sum_stats_AU;
 	ExtractSummaryStatistics(AU_prediction_track, sum_stats_AU);
 
+	this->current_time_seconds = timestamp_seconds;
 }
 
 // Reset the models
@@ -393,4 +394,16 @@ void FaceAnalyser::ReadRegressor(std::string fname, const vector<string>& au_nam
 		AU_SVR_dynamic_geom_lin_regressors.Read(regressor_stream, au_names);		
 	}
 
+}
+
+double FaceAnalyser::GetCurrentArousal() {
+	return sin(current_time_seconds * 1);
+}
+
+double FaceAnalyser::GetCurrentValence() {
+	return cos(current_time_seconds * 1.2);
+}
+
+double FaceAnalyser::GetCurrentTimeSeconds() {
+	return current_time_seconds;
 }
