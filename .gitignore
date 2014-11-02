@@ -23,3 +23,5 @@ exe/Psyche/bin/
 exe/Psyche/obj/
 lib/local/PsycheInterop/Debug/
 lib/local/PsycheInterop/Release/
+lib/3rdParty/libsvm/Debug/
+lib/3rdParty/libsvm/Release/

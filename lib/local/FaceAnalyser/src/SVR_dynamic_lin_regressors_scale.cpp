@@ -42,15 +42,11 @@ void SVR_dynamic_lin_regressors_scale::Read(std::ifstream& stream, const std::ve
 }
 
 // Prediction using the descriptor and median that have already been scaled
-void SVR_dynamic_lin_regressors_scale::Predict(std::vector<double>& predictions, std::vector<std::string>& names, const cv::Mat_<double>& descriptor, const cv::Mat_<double>& running_median)
+void SVR_dynamic_lin_regressors_scale::Predict(std::vector<double>& predictions, std::vector<std::string>& names, const cv::Mat_<double>& descriptor)
 {
 	if(AU_names.size() > 0)
 	{
-		Mat_<double> preds = (descriptor - running_median) * this->support_vectors + this->biases;
-
-		// Remove below 0 and above 5 predictions
-		preds.setTo(0, preds < 0);
-		preds.setTo(5, preds > 5);
+		Mat_<double> preds = descriptor * this->support_vectors + this->biases;
 
 		for(MatIterator_<double> pred_it = preds.begin(); pred_it != preds.end(); ++pred_it)
 		{		

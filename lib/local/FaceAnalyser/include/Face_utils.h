@@ -19,8 +19,8 @@ namespace Psyche
 	void Visualise_FHOG(const cv::Mat_<double>& descriptor, int num_rows, int num_cols, cv::Mat& visualisation);
 
 	// The following two methods go hand in hand
-	void ExtractSummaryStatistics(const cv::Mat_<double>& descriptors, cv::Mat_<double> sum_stats);
-	void AddDescriptor(cv::Mat_<double>& descriptors, cv::Mat_<double> new_descriptor, int curr_frame, int num_frames_to_keep = 60);
+	void ExtractSummaryStatistics(const cv::Mat_<double>& descriptors, cv::Mat_<double>& sum_stats);
+	void AddDescriptor(cv::Mat_<double>& descriptors, cv::Mat_<double> new_descriptor, int curr_frame, int num_frames_to_keep = 120);
 
 }
 #endif

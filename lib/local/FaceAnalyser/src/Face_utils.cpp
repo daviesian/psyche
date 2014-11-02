@@ -140,7 +140,7 @@ namespace Psyche
 	}
 
 	// Extract summary statistics (mean, stdev, min, max) from each dimension of a descriptor, each row is a descriptor
-	void ExtractSummaryStatistics(const cv::Mat_<double>& descriptors, cv::Mat_<double> sum_stats)
+	void ExtractSummaryStatistics(const cv::Mat_<double>& descriptors, cv::Mat_<double>& sum_stats)
 	{
 		// Using four summary statistics at the moment 
 		// Means, stds, mins, maxs

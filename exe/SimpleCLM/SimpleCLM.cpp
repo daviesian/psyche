@@ -264,20 +264,21 @@ int main (int argc, char **argv)
 			}
 
 			vector<pair<string,double>> au_preds;
+				
 			// Face analysis here
 			if(detection_success)
 			{
 				face_analyser.AddNextFrame(grayscale_image, clm_model, 0);
 							
-				au_preds = face_analyser.GetCurrentAUs();
+				//au_preds = face_analyser.GetCurrentAUs();
 
 				// Print the results here (for now)
-				cout << face_analyser.GetConfidence() << " ";
-				for(auto au_it = au_preds.begin(); au_it != au_preds.end(); ++au_it)
-				{
-					cout << au_it->first << " " << (int)(au_it->second+0.5) << " ";					
-				}
-				cout << endl;
+				//cout << face_analyser.GetConfidence() << " ";
+				//for(auto au_it = au_preds.begin(); au_it != au_preds.end(); ++au_it)
+				//{
+				//	cout << au_it->first << " " << (int)(au_it->second+0.5) << " ";					
+				//}
+				//cout << endl;
 
 			}
 			else
@@ -287,6 +288,7 @@ int main (int argc, char **argv)
 				au_preds = face_analyser.GetCurrentAUs();
 			}
 			
+			cout << face_analyser.GetConfidence() << " " << endl;
 
 			// Output the estimated head pose
 			if(!pose_output_files.empty())

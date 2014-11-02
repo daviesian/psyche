@@ -277,7 +277,7 @@ bool CLMTracker::DetectLandmarksInVideo(const Mat_<uchar> &grayscale_image, cons
 
 	// Only do it if there was a face detection at all
 	if(clm_model.tracking_initialised)
-	{		
+	{
 
 		// The area of interest search size will depend if the previous track was successful
 		if(!clm_model.detection_success)

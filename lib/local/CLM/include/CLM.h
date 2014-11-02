@@ -136,8 +136,11 @@ public:
 	// This is useful for knowing when to initialise and reinitialise tracking
 	int failures_in_a_row;
 
-	// A template of a face that last succeeded with tracking (useful for large motions in video) TODO
+	// A template of a face that last succeeded with tracking (useful for large motions in video)
 	Mat_<uchar> face_template;
+
+	// Useful when resetting or initialising the model closer to a specific location (when multiple faces are present)
+	cv::Point_<double> preference_det;
 
 	// A default constructor
 	CLM()

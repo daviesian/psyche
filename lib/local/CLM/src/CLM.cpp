@@ -257,11 +257,19 @@ void CLM::Reset()
 // Resetting the model, choosing the face nearest (x,y)
 void CLM::Reset(double x, double y)
 {
+
+	// First reset the model overall
+	this->Reset();
+
+	cout << "Resetting to (" << x << ", " << y << ")" << endl;
+
+	this->preference_det.x = x;
+	this->preference_det.y = y;
+
 	// x and y are each between 0 and 1.
 
 	// TODO: Implement this function
 
-	cout << "Resetting to (" << x << ", " << y << ")" << endl;
 }
 
 // The main internal landmark detection call (should not be used externally?)
