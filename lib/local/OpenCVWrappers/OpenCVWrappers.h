@@ -77,7 +77,7 @@ namespace OpenCVWrappers {
 
 		RawImage(RawImage^ img)
 		{
-			mat = new cv::Mat(img->Mat);
+			mat = new cv::Mat(img->Mat.clone());
 			refCount++;
 		}
 

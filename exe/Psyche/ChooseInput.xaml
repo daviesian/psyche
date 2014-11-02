@@ -3,6 +3,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Psyche | Choose Input" Height="543" Width="721"
         Loaded="Window_Loaded" WindowStartupLocation="CenterScreen" Icon="camera.ico">
-    <WrapPanel Name="camerasPanel">
-    </WrapPanel>
+    <Grid Name="camerasPanel">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Label Grid.Row="0" Grid.ColumnSpan="10" HorizontalContentAlignment="Center" FontSize="32">Choose Camera</Label>
+    </Grid>
 </Window>

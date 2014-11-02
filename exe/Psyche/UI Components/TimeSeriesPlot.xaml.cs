@@ -93,7 +93,7 @@ namespace Psyche
             
             GradientStopCollection gs = new GradientStopCollection();
             gs.Add(new GradientStop(bTransparent, 0));
-            gs.Add(new GradientStop(b, 0.5));
+            gs.Add(new GradientStop(b, 0.2));
             LinearGradientBrush g = new LinearGradientBrush(gs, new Point(0, 0), Orientation == System.Windows.Controls.Orientation.Horizontal ? new Point(ActualWidth, 0) : new Point(0, ActualHeight));
             g.MappingMode = BrushMappingMode.Absolute;
             g.Freeze();

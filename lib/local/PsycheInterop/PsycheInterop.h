@@ -20,6 +20,7 @@
 
 using namespace System;
 using namespace OpenCVWrappers;
+using namespace System::Collections::Generic;
 
 namespace PsycheInterop {
 
@@ -144,24 +145,62 @@ namespace PsycheInterop {
 				return gcnew Vec6d(::CLMTracker::GetCorrectedPoseCameraPlane(*clm, fx, fy, cx, cy, *clmParams->getParams()));
 			}
 	
-			// Static functions from the CLMTracker namespace.
-			void Draw(RawImage^ img) {
-				::CLMTracker::Draw(img->Mat, *clm);
+			List<System::Windows::Point>^ CalculateLandmarks() {
+				vector<Point> vecLandmarks = ::CLMTracker::CalculateLandmarks(*clm);
+				
+				List<System::Windows::Point>^ landmarks = gcnew List<System::Windows::Point>();
+				for(Point p : vecLandmarks) {
+					landmarks->Add(System::Windows::Point(p.x, p.y));
+				}
+
+				return landmarks;
 			}
 
-			void DrawBox(RawImage^ image, double r, double g, double b, int thickness, float fx, float fy, float cx, float cy) {
-				cv::Scalar color = cv::Scalar(r,g,b,1);
+			// Static functions from the CLMTracker namespace.
+			void DrawLandmarks(RawImage^ img, List<System::Windows::Point>^ landmarks) {
+
+				vector<Point> vecLandmarks;
+
+				for(int i = 0; i < landmarks->Count; i++) {
+					System::Windows::Point p = landmarks[i];
+					vecLandmarks.push_back(Point(p.X, p.Y));
+				}
+
+				::CLMTracker::DrawLandmarks(img->Mat, vecLandmarks);
+			}
+
+			List<Tuple<System::Windows::Point, System::Windows::Point>^>^ CalculateBox(float fx, float fy, float cx, float cy) {
 				::CLMTracker::CLMParameters params = ::CLMTracker::CLMParameters();
 				cv::Vec6d pose = ::CLMTracker::GetCorrectedPoseCameraPlane(*clm, fx,fy, cx, cy, params);
 
-				::CLMTracker::DrawBox(image->Mat, pose, color, thickness, fx, fy, cx, cy);
+				vector<pair<Point, Point>> vecLines = ::CLMTracker::CalculateBox(pose, fx, fy, cx, cy);
+
+				List<Tuple<System::Windows::Point, System::Windows::Point>^>^ lines = gcnew List<Tuple<System::Windows::Point,System::Windows::Point>^>();
+
+				for(pair<Point, Point> line : vecLines) {
+					lines->Add(gcnew Tuple<System::Windows::Point, System::Windows::Point>(System::Windows::Point(line.first.x, line.first.y), System::Windows::Point(line.second.x, line.second.y)));
+				}
+
+				return lines;
+			}
+
+			void DrawBox(System::Collections::Generic::List<System::Tuple<System::Windows::Point, System::Windows::Point>^>^ lines, RawImage^ image, double r, double g, double b, int thickness) {
+				cv::Scalar color = cv::Scalar(r,g,b,1);
+
+				vector<pair<Point, Point>> vecLines;
+
+				for(int i = 0; i < lines->Count; i++) {
+					System::Tuple<System::Windows::Point, System::Windows::Point>^ points = lines[i];
+					vecLines.push_back(pair<Point,Point>(Point(points->Item1.X, points->Item1.Y), Point(points->Item2.X, points->Item2.Y)));
+				}
+
+				::CLMTracker::DrawBox(vecLines, image->Mat, color, thickness);
 			}
 
 
 		};
 
 	}
-
 
 	public ref class FaceAnalyser
 	{

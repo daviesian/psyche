@@ -106,11 +106,14 @@ namespace CLMTracker
 	// Visualisation functions
 	//===========================================================================
 	void Project(Mat_<double>& dest, const Mat_<double>& mesh, double fx, double fy, double cx, double cy);
-	void DrawBox(Mat image, Vec6d pose, Scalar color, int thickness, float fx, float fy, float cx, float cy);
+	vector<pair<Point, Point>> CalculateBox(Vec6d pose, float fx, float fy, float cx, float cy);
+	void DrawBox(vector<pair<Point, Point>> lines, Mat image, Scalar color, int thickness);
 
-	void Draw(cv::Mat img, const Mat_<double>& shape2D, Mat_<int>& visibilities);
-	void Draw(cv::Mat img, const Mat_<double>& shape2D);
-	void Draw(cv::Mat img, CLM& clm_model);
+	vector<Point> CalculateLandmarks(const Mat_<double>& shape2D, Mat_<int>& visibilities);
+	vector<Point> CalculateLandmarks(const Mat_<double>& shape2D);
+	vector<Point> CalculateLandmarks(CLM& clm_model);
+
+	void DrawLandmarks(cv::Mat img, vector<Point> landmarks);
 
 	//===========================================================================
 	// Angle representation conversion helpers

@@ -18,13 +18,13 @@ namespace Psyche
 
         private void DiscardOldFrames()
         {
-            while (frameTimes.Count > 0 && (TimeSeriesPlot.CurrentTime - frameTimes.Peek()) > HistoryLength)
+            while (frameTimes.Count > 0 && (MainWindow.CurrentTime - frameTimes.Peek()) > HistoryLength)
                 frameTimes.Dequeue();
         }
 
         public void AddFrame()
         {
-            frameTimes.Enqueue(TimeSeriesPlot.CurrentTime);
+            frameTimes.Enqueue(MainWindow.CurrentTime);
             DiscardOldFrames();
         }
 
@@ -35,7 +35,7 @@ namespace Psyche
             if (frameTimes.Count == 0)
                 return 0;
 
-            return frameTimes.Count / (TimeSeriesPlot.CurrentTime - frameTimes.Peek()).TotalSeconds;
+            return frameTimes.Count / (MainWindow.CurrentTime - frameTimes.Peek()).TotalSeconds;
         }
     }
 }

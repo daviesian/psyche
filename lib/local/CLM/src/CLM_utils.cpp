@@ -758,7 +758,7 @@ void Project(Mat_<double>& dest, const Mat_<double>& mesh, double fx, double fy,
 
 }
 
-void DrawBox(Mat image, Vec6d pose, Scalar color, int thickness, float fx, float fy, float cx, float cy)
+vector<std::pair<Point,Point>> CalculateBox(Vec6d pose, float fx, float fy, float cx, float cy)
 {
 	double boxVerts[] = {-1, 1, -1,
 						1, 1, -1,
@@ -802,7 +802,7 @@ void DrawBox(Mat image, Vec6d pose, Scalar color, int thickness, float fx, float
 	Mat_<double> rotBoxProj;
 	Project(rotBoxProj, rotBox, fx, fy, cx, cy);
 
-	Rect image_rect(0,0,image.cols, image.rows);
+	vector<std::pair<Point,Point>> lines;
 	
 	for (size_t i = 0; i < edges.size(); ++i)
 	{
@@ -815,6 +815,21 @@ void DrawBox(Mat image, Vec6d pose, Scalar color, int thickness, float fx, float
 		Point p1((int)begin.at<double>(0), (int)begin.at<double>(1));
 		Point p2((int)end.at<double>(0), (int)end.at<double>(1));
 		
+		lines.push_back(pair<Point, Point>(p1,p2));
+		
+	}
+
+	return lines;
+}
+
+void DrawBox(vector<pair<Point, Point>> lines, Mat image, Scalar color, int thickness)
+{
+	Rect image_rect(0,0,image.cols, image.rows);
+	
+	for (size_t i = 0; i < lines.size(); ++i)
+	{
+		Point p1 = lines.at(i).first;
+		Point p2 = lines.at(i).second;
 		// Only draw the line if one of the points is inside the image
 		if(p1.inside(image_rect) || p2.inside(image_rect))
 		{
@@ -825,10 +840,13 @@ void DrawBox(Mat image, Vec6d pose, Scalar color, int thickness, float fx, float
 
 }
 
+
+
 // Drawing landmarks on a face image
-void Draw(cv::Mat img, const Mat_<double>& shape2D, Mat_<int>& visibilities)
+vector<Point> CalculateLandmarks(const Mat_<double>& shape2D, Mat_<int>& visibilities)
 {
 	int n = shape2D.rows/2;
+	vector<Point> landmarks;
 
 	for( int i = 0; i < n; ++i)
 	{		
@@ -836,22 +854,19 @@ void Draw(cv::Mat img, const Mat_<double>& shape2D, Mat_<int>& visibilities)
 		{
 			Point featurePoint((int)shape2D.at<double>(i), (int)shape2D.at<double>(i +n));
 
-			// A rough heuristic for drawn point size
-			int thickness = (int)std::ceil(5.0* ((double)img.cols) / 640.0);
-			int thickness_2 = (int)std::ceil(1.5* ((double)img.cols) / 640.0);
-
-			cv::circle(img, featurePoint, 1, Scalar(0,0,255), thickness);
-			cv::circle(img, featurePoint, 1, Scalar(255,0,0), thickness_2);
+			landmarks.push_back(featurePoint);
 		}
 	}
-	
+
+	return landmarks;
 }
 
 // Drawing landmarks on a face image
-void Draw(cv::Mat img, const Mat_<double>& shape2D)
+vector<Point> CalculateLandmarks(cv::Mat img, const Mat_<double>& shape2D)
 {
 	
 	int n;
+	vector<Point> landmarks;
 	
 	if(shape2D.cols == 2)
 	{
@@ -873,26 +888,36 @@ void Draw(cv::Mat img, const Mat_<double>& shape2D)
 		{
 			featurePoint = Point((int)shape2D.at<double>(i, 0), (int)shape2D.at<double>(i, 1));
 		}
-		// A rough heuristic for drawn point size
-		int thickness = (int)std::ceil(5.0* ((double)img.cols) / 640.0);
-		int thickness_2 = (int)std::ceil(1.5* ((double)img.cols) / 640.0);
 
-		cv::circle(img, featurePoint, 1, Scalar(0,0,255), thickness);
-		cv::circle(img, featurePoint, 1, Scalar(255,0,0), thickness_2);
-
+		landmarks.push_back(featurePoint);
 	}
 	
+	return landmarks;
 }
 
 // Drawing detected landmarks on a face image
-void Draw(cv::Mat img, CLM& clm_model)
+vector<Point> CalculateLandmarks(CLM& clm_model)
 {
 
 	int idx = clm_model.patch_experts.GetViewIdx(clm_model.params_global, 0);
 
 	// Because we only draw visible points, need to find which points patch experts consider visible at a certain orientation
-	Draw(img, clm_model.detected_landmarks, clm_model.patch_experts.visibilities[0][idx]);
+	return CalculateLandmarks(clm_model.detected_landmarks, clm_model.patch_experts.visibilities[0][idx]);
 
+}
+
+void DrawLandmarks(cv::Mat img, vector<Point> landmarks)
+{
+	for(Point p : landmarks)
+	{		
+		// A rough heuristic for drawn point size
+		int thickness = (int)std::ceil(5.0* ((double)img.cols) / 640.0);
+		int thickness_2 = (int)std::ceil(1.5* ((double)img.cols) / 640.0);
+
+		cv::circle(img, p, 1, Scalar(0,0,255), thickness);
+		cv::circle(img, p, 1, Scalar(255,0,0), thickness_2);
+	}
+	
 }
 
 //===========================================================================

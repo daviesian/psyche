@@ -308,7 +308,8 @@ int main (int argc, char **argv)
 			// Only draw if the reliability is reasonable, the value is slightly ad-hoc
 			if(detection_certainty < visualisation_boundary)
 			{
-				CLMTracker::Draw(captured_image, clm_model);
+				vector<Point> landmarks = CLMTracker::CalculateLandmarks(clm_model);
+				CLMTracker::DrawLandmarks(captured_image, landmarks);
 
 				if(detection_certainty > 1)
 					detection_certainty = 1;
@@ -323,7 +324,9 @@ int main (int argc, char **argv)
 				Vec6d pose_estimate_to_draw = CLMTracker::GetCorrectedPoseCameraPlane(clm_model, fx, fy, cx, cy, clm_parameters);
 
 				// Draw it in reddish if uncertain, blueish if certain
-				CLMTracker::DrawBox(captured_image, pose_estimate_to_draw, Scalar((1-detection_certainty)*255.0,0, detection_certainty*255), thickness, fx, fy, cx, cy);
+
+				vector<pair<Point,Point>> lines = CLMTracker::CalculateBox(pose_estimate_to_draw, fx, fy, cx, cy);
+				CLMTracker::DrawBox(lines, captured_image, Scalar((1-detection_certainty)*255.0,0, detection_certainty*255), thickness);
 
 			}
 

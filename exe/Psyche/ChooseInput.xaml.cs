@@ -30,6 +30,10 @@ namespace Psyche
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             new Thread(EnumerateCameras).Start();
+            //MainWindow window = new MainWindow(1);
+            //window.Show();
+            //Close();
+
         }
 
         private void EnumerateCameras()
@@ -53,25 +57,31 @@ namespace Psyche
                         int idx = i;
                         Image img = new Image();
                         img.Source = b;
+                        img.Margin = new Thickness(30);
+                        camerasPanel.ColumnDefinitions.Add(new ColumnDefinition());
+                        img.SetValue(Grid.ColumnProperty, camerasPanel.Children.Count-1);
+                        img.SetValue(Grid.RowProperty, 1);
+                        camerasPanel.Children.Add(img);
 
-                        Button btn = new Button();
-                        btn.Content = img;
-                        btn.Padding = new Thickness(10);
-                        btn.Width = 200;
-                        btn.Height = 200;
-
-                        btn.Click += (s, e) => {
+                        img.MouseDown += (s, e) => {
                             Console.WriteLine("Select camera " + idx);
                             MainWindow window = new MainWindow(idx);
                             window.Show();
                             Close();
                         };
-
-                        camerasPanel.Children.Add(btn);
                     });
 
                 }
                 i++;
+            }
+
+
+            // If there's only one camera, just go ahead and use it.
+            if (i == 1)
+            {
+                MainWindow window = new MainWindow(0);
+                window.Show();
+                Close();
             }
         }
     }

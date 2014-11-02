@@ -156,7 +156,8 @@ namespace Psyche
                     var confidence = egConfidences[eg];
                     var b = bs[seriesId]; //new SolidColorBrush(Color.FromArgb((byte)((i / (double)egs.Count) * 256), 0, 0, 0));
                     var c = b.Color;
-                    var d = new SolidColorBrush(Color.FromArgb((byte)((i / (double)egs.Count) * 200 * confidence), c.R, c.G, c.B));
+                    var d = new RadialGradientBrush(Color.FromArgb((byte)((i / (double)egs.Count) * 200 * confidence), c.R, c.G, c.B), Color.FromArgb(0, c.R, c.G, c.B));
+                    //var d = new SolidColorBrush(Color.FromArgb((byte)((i / (double)egs.Count) * 200 * confidence), c.R, c.G, c.B));
                     dc.DrawGeometry(d, null, eg);
                     i++;
                 }

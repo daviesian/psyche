@@ -2,6 +2,7 @@
 using PsycheInterop;
 using PsycheInterop.CLMTracker;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -45,12 +46,19 @@ namespace Psyche
         private bool reset = false;
         Point? resetPoint = null;
 
+        BlockingCollection<Tuple<RawImage, RawImage>> frameQueue = new BlockingCollection<Tuple<RawImage, RawImage>>(2);
+
+        FpsTracker fps = new FpsTracker();
+
+        volatile bool detectionSucceeding = false;
+
         public MainWindow(int device)
         {
             InitializeComponent();
             capture = new Capture(device);
 
             new Thread(CaptureLoop).Start();
+            new Thread(ProcessLoop).Start();
         }
 
         public MainWindow(string videoFile)
@@ -60,6 +68,58 @@ namespace Psyche
         }
 
         private void CaptureLoop()
+        {
+            Thread.CurrentThread.IsBackground = true;
+
+
+            while (true)
+            {
+
+                //////////////////////////////////////////////
+                // CAPTURE FRAME AND DETECT LANDMARKS
+                //////////////////////////////////////////////
+
+                var frame = capture.GetNextFrame();
+                fps.AddFrame();
+
+                var grayFrame = capture.GetCurrentFrameGray();
+
+                if (grayFrame == null)
+                    continue;
+
+                frameQueue.TryAdd(new Tuple<RawImage, RawImage>(frame, grayFrame));
+
+                try
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        if (latestImg == null)
+                            latestImg = frame.CreateWriteableBitmap();
+
+                        fpsLabel.Content = fps.GetFPS().ToString("0") + " FPS";
+
+                        if (!detectionSucceeding)
+                        {
+                            frame.UpdateWriteableBitmap(latestImg);
+
+                            video.OverlayLines.Clear();
+                            video.OverlayPoints.Clear();
+
+                            video.Source = latestImg;
+                            //Console.WriteLine("FAIL");
+                            //Console.Beep(440,20);
+                        }
+                    });
+                }
+                catch (TaskCanceledException)
+                {
+                    // Quitting
+                    break;
+                }
+            }
+        }
+
+        private void ProcessLoop()
         {
             Thread.CurrentThread.IsBackground = true;
 
@@ -76,17 +136,10 @@ namespace Psyche
 
             while (true)
             {
+                var newFrames = frameQueue.Take();
 
-                //////////////////////////////////////////////
-                // CAPTURE FRAME AND DETECT LANDMARKS
-                //////////////////////////////////////////////
-
-                var frame = capture.GetNextFrame();
-
-                var grayFrame = capture.GetCurrentFrameGray();
-
-                if (grayFrame == null)
-                    continue;
+                var frame = new RawImage(newFrames.Item1);
+                var grayFrame = newFrames.Item2;
 
                 if (!startTime.HasValue)
                     startTime = CurrentTime;
@@ -111,13 +164,21 @@ namespace Psyche
                     resetPoint = null;
                 }
 
-                bool detected = clmModel.DetectLandmarksInVideo(grayFrame, clmParams);
+                detectionSucceeding = clmModel.DetectLandmarksInVideo(grayFrame, clmParams);
 
-                if (detected)
+                List<Tuple<Point, Point>> lines = null;
+                List<Point> landmarks = null;
+                if (detectionSucceeding)
                 {
+                    landmarks = clmModel.CalculateLandmarks();
+                    //clmModel.DrawLandmarks(frame, landmarks);
+                    lines = clmModel.CalculateBox(fx, fy, cx, cy);
+                    //clmModel.DrawBox(lines, frame, 0, 0, 255, 2);
                     // TODO: Do this drawing in WPF, it'll look nicer.
-                    clmModel.Draw(frame);
-                    clmModel.DrawBox(frame, 0, 0, 255, 2, fx, fy, cx, cy);
+                }
+                else
+                {
+                    analyser.Reset();
                 }
 
                 //////////////////////////////////////////////
@@ -130,33 +191,46 @@ namespace Psyche
                 double arousal = analyser.GetCurrentArousal();
                 double valence = analyser.GetCurrentValence();
                 double confidence = analyser.GetConfidence();
-
-
                 try
                 {
                     Dispatcher.Invoke(() =>
                     {
-                        if (latestImg == null)
-                            latestImg = frame.CreateWriteableBitmap();
-                        
-                        frame.UpdateWriteableBitmap(latestImg);
 
-                        video.Source = latestImg;
+                        confidenceBar.Value = confidence;
 
-                        Dictionary<int, double> arousalDict = new Dictionary<int, double>();
-                        arousalDict[0] = arousal*0.5 + 0.5;
-                        arousalPlot.AddDataPoint(new DataPoint() { Time = CurrentTime, values = arousalDict, Confidence = confidence });
+                        if (detectionSucceeding)
+                        {
 
-                        Dictionary<int, double> valenceDict = new Dictionary<int, double>();
-                        valenceDict[0] = valence * 0.5 + 0.5;
-                        valencePlot.AddDataPoint(new DataPoint() { Time = CurrentTime, values = valenceDict, Confidence = confidence });
+                            frame.UpdateWriteableBitmap(latestImg);
 
-                        Dictionary<int, double> avDict = new Dictionary<int, double>();
-                        avDict[0] = valence;
-                        avDict[1] = arousal;
-                        avPlot.AddDataPoint(new DataPoint() { Time = CurrentTime, values = avDict, Confidence = confidence });
+                            video.OverlayLines = lines;
+                            video.OverlayPoints = landmarks;
+                            video.Confidence = confidence;
 
-                        auGraph.Update(aus, confidence);
+                            video.Source = latestImg;
+
+                            Dictionary<int, double> arousalDict = new Dictionary<int, double>();
+                            arousalDict[0] = arousal * 0.5 + 0.5;
+                            arousalPlot.AddDataPoint(new DataPoint() { Time = CurrentTime, values = arousalDict, Confidence = confidence });
+
+                            Dictionary<int, double> valenceDict = new Dictionary<int, double>();
+                            valenceDict[0] = valence * 0.5 + 0.5;
+                            valencePlot.AddDataPoint(new DataPoint() { Time = CurrentTime, values = valenceDict, Confidence = confidence });
+
+                            Dictionary<int, double> avDict = new Dictionary<int, double>();
+                            avDict[0] = arousal;
+                            avDict[1] = valence;
+                            avPlot.AddDataPoint(new DataPoint() { Time = CurrentTime, values = avDict, Confidence = confidence });
+
+                            auGraph.Update(aus, confidence);
+                        }
+                        else
+                        {
+                            foreach (var k in aus.Keys.ToArray())
+                                aus[k] = 0;
+
+                            auGraph.Update(aus, 0);
+                        }
                     });
                 }
                 catch (TaskCanceledException)
