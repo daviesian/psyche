@@ -48,7 +48,8 @@ namespace Psyche
 
         BlockingCollection<Tuple<RawImage, RawImage>> frameQueue = new BlockingCollection<Tuple<RawImage, RawImage>>(2);
 
-        FpsTracker fps = new FpsTracker();
+        FpsTracker videoFps = new FpsTracker();
+        FpsTracker trackingFps = new FpsTracker();
 
         volatile bool detectionSucceeding = false;
 
@@ -80,7 +81,7 @@ namespace Psyche
                 //////////////////////////////////////////////
 
                 var frame = capture.GetNextFrame();
-                fps.AddFrame();
+                videoFps.AddFrame();
 
                 var grayFrame = capture.GetCurrentFrameGray();
 
@@ -96,7 +97,7 @@ namespace Psyche
                         if (latestImg == null)
                             latestImg = frame.CreateWriteableBitmap();
 
-                        fpsLabel.Content = fps.GetFPS().ToString("0") + " FPS";
+                        fpsLabel.Content = "Video: " + videoFps.GetFPS().ToString("0") + " FPS | Tracking: " + trackingFps.GetFPS().ToString("0") + " FPS";
 
                         if (!detectionSucceeding)
                         {
@@ -106,8 +107,6 @@ namespace Psyche
                             video.OverlayPoints.Clear();
 
                             video.Source = latestImg;
-                            //Console.WriteLine("FAIL");
-                            //Console.Beep(440,20);
                         }
                     });
                 }
@@ -171,10 +170,7 @@ namespace Psyche
                 if (detectionSucceeding)
                 {
                     landmarks = clmModel.CalculateLandmarks();
-                    //clmModel.DrawLandmarks(frame, landmarks);
                     lines = clmModel.CalculateBox(fx, fy, cx, cy);
-                    //clmModel.DrawBox(lines, frame, 0, 0, 255, 2);
-                    // TODO: Do this drawing in WPF, it'll look nicer.
                 }
                 else
                 {
@@ -186,6 +182,8 @@ namespace Psyche
                 //////////////////////////////////////////////
 
                 analyser.AddNextFrame(grayFrame, clmModel, (CurrentTime - startTime.Value).TotalSeconds);
+
+                trackingFps.AddFrame();
 
                 Dictionary<String, double> aus = analyser.GetCurrentAUs();
                 double arousal = analyser.GetCurrentArousal();
