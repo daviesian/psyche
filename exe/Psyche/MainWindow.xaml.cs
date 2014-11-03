@@ -43,6 +43,8 @@ namespace Psyche
 
         private Capture capture;
         private WriteableBitmap latestImg;
+        private WriteableBitmap latestAlignedFace;
+        private WriteableBitmap latestHOGDescriptor;
         private bool reset = false;
         Point? resetPoint = null;
 
@@ -187,6 +189,9 @@ namespace Psyche
 
                 analyser.AddNextFrame(grayFrame, clmModel, (CurrentTime - startTime.Value).TotalSeconds);
 
+                var alignedFace = analyser.GetLatestAlignedFace();
+                var hogDescriptor = analyser.GetLatestHOGDescriptorVisualisation();
+
                 trackingFps.AddFrame();
 
                 Dictionary<String, double> aus = analyser.GetCurrentAUs();
@@ -198,12 +203,23 @@ namespace Psyche
                     Dispatcher.Invoke(() =>
                     {
 
+                        if (latestAlignedFace == null)
+                            latestAlignedFace = alignedFace.CreateWriteableBitmap();
+
+                        if (latestHOGDescriptor == null)
+                            latestHOGDescriptor = hogDescriptor.CreateWriteableBitmap();
+
                         confidenceBar.Value = confidence;
 
                         if (detectionSucceeding)
                         {
 
                             frame.UpdateWriteableBitmap(latestImg);
+                            alignedFace.UpdateWriteableBitmap(latestAlignedFace);
+                            hogDescriptor.UpdateWriteableBitmap(latestHOGDescriptor);
+
+                            imgAlignedFace.Source = latestAlignedFace;
+                            imgHOGDescriptor.Source = latestHOGDescriptor;
 
                             video.OverlayLines = lines;
                             video.OverlayPoints = landmarks;

@@ -217,6 +217,14 @@ namespace PsycheInterop {
 			faceAnalyser->AddNextFrame(frame->Mat, *clm->getCLM(), timestamp_seconds);
 		}
 
+		RawImage^ GetLatestAlignedFace() {
+			return gcnew RawImage((cv::Mat&)faceAnalyser->GetLatestAlignedFace());
+		}
+
+		RawImage^ GetLatestHOGDescriptorVisualisation() {
+			return gcnew RawImage(faceAnalyser->GetLatestHOGDescriptorVisualisation());
+		}
+
 		double GetCurrentTimeSeconds() {
 			return faceAnalyser->GetCurrentTimeSeconds();
 		}

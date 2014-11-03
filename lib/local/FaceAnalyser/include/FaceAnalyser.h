@@ -53,6 +53,10 @@ public:
 
 	void AddNextFrame(const cv::Mat_<uchar>& frame, const CLMTracker::CLM& clm, double timestamp_seconds);
 
+	Mat_<uchar> GetLatestAlignedFace();
+
+	Mat GetLatestHOGDescriptorVisualisation();
+
 	double GetCurrentTimeSeconds();
 
 	double GetCurrentArousal();
@@ -82,6 +86,11 @@ private:
 	std::vector<std::pair<std::string, double>> AU_predictions;
 	double arousal_value;
 	double valence_value;
+
+	// Cache of intermediate images
+	Mat_<uchar> aligned_face;
+	Mat hog_descriptor_visualisation;
+
 
 	// Private members to be used for predictions
 	// The HOG descriptor of the last frame
