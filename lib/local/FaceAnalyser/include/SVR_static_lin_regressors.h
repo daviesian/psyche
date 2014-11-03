@@ -7,8 +7,6 @@
 #include <stdio.h>
 #include <iostream>
 
-#include <dlib\array2d.h>
-
 #include <cv.h>
 
 namespace Psyche

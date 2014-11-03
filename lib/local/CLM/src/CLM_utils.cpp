@@ -46,6 +46,8 @@
 #include <filesystem.hpp>
 #include <filesystem/fstream.hpp>
 
+#include <dlib/opencv.h>
+
 #include <iostream>
 #include <sstream>
 

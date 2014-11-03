@@ -61,7 +61,6 @@
 
 // Used for face detection
 #include <dlib/image_processing/frontal_face_detector.h>
-#include <dlib/opencv.h>
 
 using namespace std;
 using namespace cv;

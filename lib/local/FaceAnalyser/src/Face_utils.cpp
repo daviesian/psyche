@@ -3,7 +3,7 @@
 #include <CLM_utils.h>
 
 // For FHOG visualisation
-#include <dlib/gui_widgets.h>
+#include <dlib/opencv.h>
 
 using namespace cv;
 using namespace std;
