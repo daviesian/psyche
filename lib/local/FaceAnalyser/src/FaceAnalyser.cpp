@@ -61,8 +61,18 @@ void FaceAnalyser::AddNextFrame(const cv::Mat_<uchar>& frame, const CLMTracker::
 	UpdateRunningMedian(this->hog_desc_hist, hist_count, this->hog_desc_median, hog_descriptor, this->num_bins_hog, this->min_val_hog, this->max_val_hog);
 
 	// Visualising the median HOG
-	Psyche::Visualise_FHOG(cv::abs(hog_descriptor - this->hog_desc_median), 10, 10, hog_descriptor_visualisation);
+	Mat visualisation_new;
+	Psyche::Visualise_FHOG(hog_descriptor - this->hog_desc_median, 10, 10, visualisation_new);
 	//cv::imshow("FHOG median", hog_descriptor_visualisation);
+	//.setTo(0, hog_descriptor_visualisation < 0.4);
+	if(!hog_descriptor_visualisation.empty())
+	{
+		hog_descriptor_visualisation = 0.9 * hog_descriptor_visualisation + 0.1 * visualisation_new;
+	}
+	else
+	{
+		hog_descriptor_visualisation = visualisation_new;
+	}
 
 	this->hist_sum = hist_count;
 
