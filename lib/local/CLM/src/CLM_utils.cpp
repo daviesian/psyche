@@ -1171,9 +1171,9 @@ bool DetectSingleFaceHOG(Rect_<double>& o_region, const Mat_<uchar>& intensity_i
 		// keep the most confident one or the one closest to preference point if set
 		double best_so_far;
 		if(use_preferred)
-		{
-			best_so_far = sqrt((preference.x) * (face_detections[0].width/2 + face_detections[0].x) + 
-								(preference.y) * (face_detections[0].height/2 + face_detections[0].y));
+		{			
+			best_so_far = sqrt((preference.x - (face_detections[0].width/2 + face_detections[0].x)) * (preference.x - (face_detections[0].width/2 + face_detections[0].x)) + 
+							   (preference.y - (face_detections[0].height/2 + face_detections[0].y)) * (preference.y - (face_detections[0].height/2 + face_detections[0].y)));
 		}
 		else
 		{
@@ -1187,17 +1187,17 @@ bool DetectSingleFaceHOG(Rect_<double>& o_region, const Mat_<uchar>& intensity_i
 			double dist;
 			bool better;
 
-				if(use_preferred)
-				{
-					dist = sqrt((preference.x) * (face_detections[i].width/2 + face_detections[i].x) + 
-								(preference.y) * (face_detections[i].height/2 + face_detections[i].y));
-					better = dist < best_so_far;
-				}
-				else
-				{
-					dist = confidences[i];
-					better = dist > best_so_far;
-				}
+			if(use_preferred)
+			{
+				dist = sqrt((preference.x - (face_detections[0].width/2 + face_detections[0].x)) * (preference.x - (face_detections[0].width/2 + face_detections[0].x)) + 
+							   (preference.y - (face_detections[0].height/2 + face_detections[0].y)) * (preference.y - (face_detections[0].height/2 + face_detections[0].y)));
+				better = dist < best_so_far;
+			}
+			else
+			{
+				dist = confidences[i];
+				better = dist > best_so_far;
+			}
 
 			// Pick a closest face
 			if(better)
