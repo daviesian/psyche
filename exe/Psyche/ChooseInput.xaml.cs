@@ -59,7 +59,7 @@ namespace Psyche
                             img.Source = b;
                             img.Margin = new Thickness(20);
                             camerasPanel.ColumnDefinitions.Add(new ColumnDefinition());
-                            img.SetValue(Grid.ColumnProperty, camerasPanel.Children.Count - 1);
+                            img.SetValue(Grid.ColumnProperty, i);
                             img.SetValue(Grid.RowProperty, 1);
                             camerasPanel.Children.Add(img);
 

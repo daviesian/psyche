@@ -62,7 +62,7 @@ namespace Psyche
         {
             InitializeComponent();
 
-            if (SystemParameters.PrimaryScreenWidth < Width || SystemParameters.PrimaryScreenHeight < Height)
+            if (SystemParameters.PrimaryScreenWidth <= Width || SystemParameters.PrimaryScreenHeight <= Height)
                 WindowState = System.Windows.WindowState.Maximized;
 
             capture = new Capture(device);
@@ -75,7 +75,7 @@ namespace Psyche
         {
             InitializeComponent();
 
-            if (SystemParameters.PrimaryScreenWidth < Width || SystemParameters.PrimaryScreenHeight < Height)
+            if (SystemParameters.PrimaryScreenWidth <= Width || SystemParameters.PrimaryScreenHeight <= Height)
                 WindowState = System.Windows.WindowState.Maximized;
 
             this.videoFile = videoFile;
