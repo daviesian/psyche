@@ -65,7 +65,7 @@ public:
 
 	double GetConfidence()
 	{
-		double confidence = hist_sum / frames_for_adaptation;
+		double confidence = hist_sum / (double)frames_for_adaptation;
 
 		if(confidence > 1)
 		{
