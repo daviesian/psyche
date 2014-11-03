@@ -75,14 +75,16 @@ namespace Psyche
                 i++;
             }
 
-
-            // If there's only one camera, just go ahead and use it.
-            if (i == 1)
+            Dispatcher.Invoke(() =>
             {
-                MainWindow window = new MainWindow(0);
-                window.Show();
-                Close();
-            }
+                // If there's only one camera, just go ahead and use it.
+                if (i == 1)
+                {
+                    MainWindow window = new MainWindow(0);
+                    window.Show();
+                    Close();
+                }
+            });
         }
     }
 }

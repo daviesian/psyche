@@ -56,6 +56,10 @@ namespace Psyche
         public MainWindow(int device)
         {
             InitializeComponent();
+
+            if (SystemParameters.PrimaryScreenWidth < Width || SystemParameters.PrimaryScreenHeight < Height)
+                WindowState = System.Windows.WindowState.Maximized;
+
             capture = new Capture(device);
 
             new Thread(CaptureLoop).Start();

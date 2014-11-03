@@ -46,7 +46,9 @@ void FaceAnalyser::AddNextFrame(const cv::Mat_<uchar>& frame, const CLMTracker::
 	Mat_<uchar> aligned_face;
 	AlignFace(aligned_face, frame, clm);
 	
-	//imshow("Aligned face", aligned_face);
+	imshow("Aligned face", aligned_face);
+
+	cv::waitKey(2);
 
 	// Extract HOG descriptor from the frame and convert it to a useable format
 	Mat_<double> hog_descriptor;
@@ -60,9 +62,9 @@ void FaceAnalyser::AddNextFrame(const cv::Mat_<uchar>& frame, const CLMTracker::
 	UpdateRunningMedian(this->hog_desc_hist, hist_count, this->hog_desc_median, hog_descriptor, this->num_bins_hog, this->min_val_hog, this->max_val_hog);
 
 	// Visualising the median HOG
-	//Mat visualisation;
-	//Psyche::Visualise_FHOG(hog_desc_median, 10, 10, visualisation);
-	//cv::imshow("FHOG median", visualisation);
+	Mat visualisation;
+	Psyche::Visualise_FHOG(cv::abs(hog_descriptor - this->hog_desc_median), 10, 10, visualisation);
+	cv::imshow("FHOG median", visualisation);
 
 	this->hist_sum = hist_count;
 
