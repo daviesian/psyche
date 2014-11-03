@@ -56,6 +56,7 @@ namespace Psyche
         volatile bool detectionSucceeding = false;
 
         double fpsLimit = 0;
+        string videoFile = null;
 
         public MainWindow(int device)
         {
@@ -77,6 +78,7 @@ namespace Psyche
             if (SystemParameters.PrimaryScreenWidth < Width || SystemParameters.PrimaryScreenHeight < Height)
                 WindowState = System.Windows.WindowState.Maximized;
 
+            this.videoFile = videoFile;
             capture = new Capture(videoFile);
             fpsLimit = capture.GetFPS();
 
@@ -111,6 +113,13 @@ namespace Psyche
                 }
                 catch (PsycheInterop.CaptureFailedException)
                 {
+                    if (videoFile != null)
+                    {
+                        capture = new Capture(videoFile);
+                        fpsLimit = capture.GetFPS();
+
+                        new Thread(CaptureLoop).Start();
+                    }
                     break;
                 }
                 lastFrameTime = CurrentTime;
