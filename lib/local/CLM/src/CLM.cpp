@@ -261,14 +261,9 @@ void CLM::Reset(double x, double y)
 	// First reset the model overall
 	this->Reset();
 
-	cout << "Resetting to (" << x << ", " << y << ")" << endl;
-
+	// Now in the following frame when face detection takes place this is the point at which it will be preffered
 	this->preference_det.x = x;
 	this->preference_det.y = y;
-
-	// x and y are each between 0 and 1.
-
-	// TODO: Implement this function
 
 }
 
