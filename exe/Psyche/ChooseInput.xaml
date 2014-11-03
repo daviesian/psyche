@@ -7,7 +7,10 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
-        <Label Grid.Row="0" Grid.ColumnSpan="10" HorizontalContentAlignment="Center" FontSize="32">Choose Camera</Label>
+        <Label Grid.Row="0" Grid.ColumnSpan="10" HorizontalContentAlignment="Center" FontSize="32">Choose Video Source</Label>
+        
+        <Button Grid.Row="2" Grid.ColumnSpan="10" FontSize="32" Click="OpenFile_Click">Open Video File...</Button>
     </Grid>
 </Window>

@@ -14,6 +14,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using PsycheInterop;
 using System.Threading;
+using Microsoft.Win32;
 
 namespace Psyche
 {
@@ -30,10 +31,6 @@ namespace Psyche
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             new Thread(EnumerateCameras).Start();
-            //MainWindow window = new MainWindow(1);
-            //window.Show();
-            //Close();
-
         }
 
         private void EnumerateCameras()
@@ -44,47 +41,57 @@ namespace Psyche
             {
                 using (Capture c = new Capture(i))
                 {
-                    var frame = c.GetNextFrame();
+                    try
+                    {
+                        var frame = c.GetNextFrame();
 
-                    if (frame.Width == 0)
+                        if (frame.Width == 0)
+                            break;
+
+                        var b = frame.CreateWriteableBitmap();
+                        frame.UpdateWriteableBitmap(b);
+                        b.Freeze();
+
+                        Dispatcher.Invoke(() =>
+                        {
+                            int idx = i;
+                            Image img = new Image();
+                            img.Source = b;
+                            img.Margin = new Thickness(20);
+                            camerasPanel.ColumnDefinitions.Add(new ColumnDefinition());
+                            img.SetValue(Grid.ColumnProperty, camerasPanel.Children.Count - 1);
+                            img.SetValue(Grid.RowProperty, 1);
+                            camerasPanel.Children.Add(img);
+
+                            img.MouseDown += (s, e) =>
+                            {
+                                Console.WriteLine("Select camera " + idx);
+                                MainWindow window = new MainWindow(idx);
+                                window.Show();
+                                Close();
+                            };
+                        });
+                    }
+                    catch (PsycheInterop.CaptureFailedException)
+                    {
                         break;
-
-                    var b = frame.CreateWriteableBitmap();
-                    frame.UpdateWriteableBitmap(b);
-                    b.Freeze();
-
-                    Dispatcher.Invoke(() => {
-                        int idx = i;
-                        Image img = new Image();
-                        img.Source = b;
-                        img.Margin = new Thickness(30);
-                        camerasPanel.ColumnDefinitions.Add(new ColumnDefinition());
-                        img.SetValue(Grid.ColumnProperty, camerasPanel.Children.Count-1);
-                        img.SetValue(Grid.RowProperty, 1);
-                        camerasPanel.Children.Add(img);
-
-                        img.MouseDown += (s, e) => {
-                            Console.WriteLine("Select camera " + idx);
-                            MainWindow window = new MainWindow(idx);
-                            window.Show();
-                            Close();
-                        };
-                    });
+                    }
 
                 }
                 i++;
             }
 
-            Dispatcher.Invoke(() =>
+        }
+
+        private void OpenFile_Click(object sender, RoutedEventArgs e)
+        {
+            var d = new OpenFileDialog();
+            if (d.ShowDialog(this) == true)
             {
-                // If there's only one camera, just go ahead and use it.
-                if (i == 1)
-                {
-                    MainWindow window = new MainWindow(0);
-                    window.Show();
-                    Close();
-                }
-            });
+                MainWindow window = new MainWindow(d.FileName);
+                window.Show();
+                Close();
+            }
         }
     }
 }

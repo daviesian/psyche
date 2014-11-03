@@ -11,6 +11,9 @@
 
 #pragma managed
 
+#include <msclr\marshal.h>
+#include <msclr\marshal_cppstd.h>
+
 #include <CLM.h>
 #include <CLMTracker.h>
 #include <CLMParameters.h>
@@ -22,7 +25,11 @@ using namespace System;
 using namespace OpenCVWrappers;
 using namespace System::Collections::Generic;
 
+using namespace msclr::interop;
+
 namespace PsycheInterop {
+
+	public ref class CaptureFailedException : System::Exception { };
 
 	public ref class Capture
 	{
@@ -34,6 +41,8 @@ namespace PsycheInterop {
 		RawImage^ mirroredFrame;
 		RawImage^ grayFrame;
 
+		double fps;
+
 	public:
 		
 		Capture(int device)
@@ -42,11 +51,24 @@ namespace PsycheInterop {
 			mirroredFrame = gcnew RawImage();
 
 			vc = new VideoCapture(device);
+			fps = vc->get(CV_CAP_PROP_FPS);
+		}
+
+		Capture(System::String^ videoFile)
+		{
+			latestFrame = gcnew RawImage();
+			mirroredFrame = gcnew RawImage();
+
+			vc = new VideoCapture(marshal_as<std::string>(videoFile));
+			fps = vc->get(CV_CAP_PROP_FPS);
 		}
 
 		RawImage^ GetNextFrame()
 		{
-			*vc >> (mirroredFrame->Mat);
+			bool success = vc->read(mirroredFrame->Mat);
+
+			if (!success)
+				throw gcnew CaptureFailedException();
 
 			flip(mirroredFrame->Mat, latestFrame->Mat, 1);
 
@@ -65,6 +87,10 @@ namespace PsycheInterop {
 
 		RawImage^ GetCurrentFrameGray() {
 			return grayFrame;
+		}
+
+		double GetFPS() {
+			return fps;
 		}
 		
 		// Finalizer. Definitely called before Garbage Collection,

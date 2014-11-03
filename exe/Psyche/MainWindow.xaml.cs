@@ -55,6 +55,8 @@ namespace Psyche
 
         volatile bool detectionSucceeding = false;
 
+        double fpsLimit = 0;
+
         public MainWindow(int device)
         {
             InitializeComponent();
@@ -71,13 +73,22 @@ namespace Psyche
         public MainWindow(string videoFile)
         {
             InitializeComponent();
-            throw new MissingMethodException("Cannot open video files yet");
+
+            if (SystemParameters.PrimaryScreenWidth < Width || SystemParameters.PrimaryScreenHeight < Height)
+                WindowState = System.Windows.WindowState.Maximized;
+
+            capture = new Capture(videoFile);
+            fpsLimit = capture.GetFPS();
+
+            new Thread(CaptureLoop).Start();
+            new Thread(ProcessLoop).Start();
         }
 
         private void CaptureLoop()
         {
             Thread.CurrentThread.IsBackground = true;
 
+            var lastFrameTime = CurrentTime;
 
             while (true)
             {
@@ -86,7 +97,23 @@ namespace Psyche
                 // CAPTURE FRAME AND DETECT LANDMARKS
                 //////////////////////////////////////////////
 
-                var frame = capture.GetNextFrame();
+                if (fpsLimit > 0)
+                {
+                    while (CurrentTime < lastFrameTime + TimeSpan.FromSeconds(1 / fpsLimit))
+                        Thread.Sleep(1);
+                }
+
+
+                RawImage frame = null;
+                try
+                {
+                    frame = capture.GetNextFrame();
+                }
+                catch (PsycheInterop.CaptureFailedException)
+                {
+                    break;
+                }
+                lastFrameTime = CurrentTime;
                 videoFps.AddFrame();
 
                 var grayFrame = capture.GetCurrentFrameGray();
