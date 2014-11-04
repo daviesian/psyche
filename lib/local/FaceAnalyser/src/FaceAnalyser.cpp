@@ -187,7 +187,7 @@ void FaceAnalyser::PredictCurrentAVs(const CLMTracker::CLM& clm)
 	// Much smaller wait time for valence update (2.5 second)
 	AddDescriptor(AU_prediction_track, preds, this->frames_tracking - 1, 75);
 	Mat_<double> sum_stats_AU;
-	ExtractSummaryStatistics(AU_prediction_track, sum_stats_AU);
+	ExtractSummaryStatistics(AU_prediction_track, sum_stats_AU, true, false, false);
 	
 	vector<string> names_v;
 	vector<double> prediction_v;
@@ -206,7 +206,7 @@ void FaceAnalyser::PredictCurrentAVs(const CLMTracker::CLM& clm)
 
 	AddDescriptor(geom_desc_track, geom_params, this->frames_tracking - 1);
 	Mat_<double> sum_stats_geom;
-	ExtractSummaryStatistics(geom_desc_track, sum_stats_geom);
+	ExtractSummaryStatistics(geom_desc_track, sum_stats_geom, false, true, true);
 
 	sum_stats_geom = (sum_stats_geom - arousal_predictor_lin_geom.means)/arousal_predictor_lin_geom.scaling;
 
@@ -239,16 +239,16 @@ void FaceAnalyser::PredictCurrentAVs(const CLMTracker::CLM& clm)
 
 	if(predictions[0].second > 0)
 	{
-		predictions[0].second = predictions[0].second * 2;
+		predictions[0].second = predictions[0].second * 1.5;
 	}
 
 	if(predictions[1].second > 0)
 	{
-		predictions[1].second = predictions[1].second * 3;
+		predictions[1].second = predictions[1].second * 1.5;
 	}
 	else
 	{
-		predictions[1].second = predictions[1].second * 10;
+		predictions[1].second = predictions[1].second * 1.5;
 	}
 
 	this->arousal_value = predictions[0].second;

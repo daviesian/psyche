@@ -140,25 +140,48 @@ namespace Psyche
 	}
 
 	// Extract summary statistics (mean, stdev, min, max) from each dimension of a descriptor, each row is a descriptor
-	void ExtractSummaryStatistics(const cv::Mat_<double>& descriptors, cv::Mat_<double>& sum_stats)
+	void ExtractSummaryStatistics(const cv::Mat_<double>& descriptors, cv::Mat_<double>& sum_stats, bool use_mean, bool use_stdev, bool use_max_min)
 	{
 		// Using four summary statistics at the moment 
 		// Means, stds, mins, maxs
-		int num_stats = 4;
+		int num_stats = 0;
+
+		if(use_mean)
+			num_stats++;
+
+		if(use_stdev)
+			num_stats++;
+
+		if(use_max_min)
+			num_stats++;
 
 		sum_stats = Mat_<double>(1, descriptors.cols * num_stats, 0.0);
 		for(int i = 0; i < descriptors.cols; ++i)
 		{
 			Scalar mean, stdev;
 			cv::meanStdDev(descriptors.col(i), mean, stdev);
-			sum_stats.at<double>(0, i*num_stats) = mean[0];
-			sum_stats.at<double>(0, i*num_stats + 1) = stdev[0];
 
-			double min, max;
-			cv::minMaxIdx(descriptors.col(i), &min, &max);
-			sum_stats.at<double>(0, i*num_stats + 2) = min;
-			sum_stats.at<double>(0, i*num_stats + 3) = max;
-		
+			int add = 0;
+
+			if(use_mean)
+			{
+				sum_stats.at<double>(0, i*num_stats + add) = mean[0];
+				add++;
+			}
+
+			if(use_stdev)
+			{
+				sum_stats.at<double>(0, i*num_stats + add) = stdev[0];
+				add++;
+			}
+
+			if(use_max_min)
+			{
+				double min, max;
+				cv::minMaxIdx(descriptors.col(i), &min, &max);
+				sum_stats.at<double>(0, i*num_stats + add) = max - min;
+				add++;
+			}
 		}		
 	}
 
