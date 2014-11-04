@@ -270,7 +270,7 @@ int main (int argc, char **argv)
 			{
 				face_analyser.AddNextFrame(grayscale_image, clm_model, 0);
 							
-				//au_preds = face_analyser.GetCurrentAUs();
+				au_preds = face_analyser.GetCurrentAUs();
 
 				// Print the results here (for now)
 				//cout << face_analyser.GetConfidence() << " ";

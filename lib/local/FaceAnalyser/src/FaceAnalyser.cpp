@@ -397,7 +397,7 @@ vector<pair<string, double>> FaceAnalyser::PredictCurrentAUs(int view, bool dyn_
 			// Also makes sense as till the maximum expression is seen, it is hard to tell how expressive a persons face is
 			if(dyn_scaling[view].empty())
 			{
-				dyn_scaling[view] = vector<double>(predictions.size(), 6.0);
+				dyn_scaling[view] = vector<double>(predictions.size(), 5.0);
 			}
 		
 			for(size_t i = 0; i < predictions.size(); ++i)
