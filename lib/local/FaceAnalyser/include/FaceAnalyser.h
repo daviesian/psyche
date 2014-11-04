@@ -81,6 +81,7 @@ private:
 	double min_val_hog;
 	double max_val_hog;
 	vector<int> hog_hist_sum;
+	int view_used;
 
 	// The geometry descriptor (rigid followed by non-rigid shape parameters from CLM)
 	Mat_<double> geom_descriptor_frame;
@@ -97,7 +98,7 @@ private:
 	Rect_<double> face_bounding_box;
 	
 	// The AU predictions internally
-	std::vector<std::pair<std::string, double>> PredictCurrentAUs(bool dyn_correct = true);
+	std::vector<std::pair<std::string, double>> PredictCurrentAUs(int view, bool dyn_correct = true);
 	void PredictCurrentAVs(const CLMTracker::CLM& clm);
 
 	void ReadAU(std::string au_location);
@@ -108,7 +109,7 @@ private:
 	// A utility function for keeping track of approximate running medians used for AU and emotion inference using a set of histograms (the histograms are evenly spaced from min_val to max_val)
 	// Descriptor has to be a row vector
 	// TODO this duplicates some other code
-	void UpdateRunningMedian(cv::Mat_<unsigned int>& histogram, int& hist_sum, cv::Mat_<double>& median, const cv::Mat_<double>& descriptor, int num_bins, double min_val, double max_val);
+	void UpdateRunningMedian(cv::Mat_<unsigned int>& histogram, int& hist_sum, cv::Mat_<double>& median, const cv::Mat_<double>& descriptor, bool update, int num_bins, double min_val, double max_val);
 
 	// The linear SVR regressors
 	SVR_static_lin_regressors AU_SVR_static_appearance_lin_regressors;
@@ -122,15 +123,16 @@ private:
 	void UpdatePredictionTrack(Mat_<unsigned int>& prediction_corr_histogram, int& prediction_correction_count, vector<double>& correction, const vector<pair<string, double>>& predictions, double ratio=0.25, int num_bins = 200, double min_val = 0, double max_val = 5, int min_frames = 10);	
 	void GetSampleHist(Mat_<unsigned int>& prediction_corr_histogram, int prediction_correction_count, vector<double>& sample, double ratio, int num_bins = 200, double min_val = 0, double max_val = 5);
 
-	cv::Mat_<unsigned int> au_prediction_correction_histogram;
-	int au_prediction_correction_count;
+	vector<cv::Mat_<unsigned int>> au_prediction_correction_histogram;
+	vector<int> au_prediction_correction_count;
 
 	cv::Mat_<unsigned int> av_prediction_correction_histogram;
 	int av_prediction_correction_count;
 
 	// Some dynamic scaling (the logic is that before the extreme versions of expression or emotion are shown,
 	// it is hard to tell the boundaries, this allows us to scale the model to the most extreme seen)
-	vector<double> dyn_scaling;
+	// They have to be view specific
+	vector<vector<double>> dyn_scaling;
 	
 	// Keeping track of predictions for summary stats
 	cv::Mat_<double> AU_prediction_track;

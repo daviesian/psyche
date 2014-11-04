@@ -33,13 +33,13 @@ FaceAnalyser::FaceAnalyser(std::string au_location, std::string av_location)
 	max_val_geom = 3;
 	min_val_geom = -3;
 
-	au_prediction_correction_count = 0;
 	av_prediction_correction_count = 0;
 		
 	arousal_value = 0;
 	valence_value = 0;
 		
-	frames_for_adaptation = 150;
+	// 4 seconds for adaptation
+	frames_for_adaptation = 120;
 	frames_tracking = 0;
 	
 	// Just using frontal currently
@@ -55,6 +55,10 @@ FaceAnalyser::FaceAnalyser(std::string au_location, std::string av_location)
 	head_orientations.push_back(Vec3d(-0.5,    0, 0));
 	hog_hist_sum.resize(head_orientations.size());
 	hog_desc_hist.resize(head_orientations.size());
+
+	au_prediction_correction_count.resize(head_orientations.size(), 0);
+	au_prediction_correction_histogram.resize(head_orientations.size());
+	dyn_scaling.resize(head_orientations.size());
 }
 
 // Getting the closest view center based on orientation
@@ -123,8 +127,23 @@ void FaceAnalyser::AddNextFrame(const cv::Mat_<uchar>& frame, const CLMTracker::
 	Vec3d curr_orient(clm.params_global[1], clm.params_global[2], clm.params_global[3]);
 	int orientation_to_use = GetViewId(this->head_orientations, curr_orient);
 
-	UpdateRunningMedian(this->hog_desc_hist[orientation_to_use], this->hog_hist_sum[orientation_to_use], this->hog_desc_median, hog_descriptor, this->num_bins_hog, this->min_val_hog, this->max_val_hog);
+	// Only update the running median if predictions are not high
+	// That is don't update it when the face is expressive (just retrieve it)
+	bool update_median = true;
+	if(!this->AU_predictions.empty())
+	{
+		for(size_t i = 0; i < this->AU_predictions.size(); ++i)
+		{
+			if(this->AU_predictions[i].second > 1)
+			{
+				update_median = false;				
+				break;
+			}
+		}
+	}
 
+	UpdateRunningMedian(this->hog_desc_hist[orientation_to_use], this->hog_hist_sum[orientation_to_use], this->hog_desc_median, hog_descriptor, update_median, this->num_bins_hog, this->min_val_hog, this->max_val_hog);
+	
 	// Visualising the median HOG
 	Mat visualisation_new;
 	Psyche::Visualise_FHOG(hog_descriptor - this->hog_desc_median, 10, 10, visualisation_new);
@@ -144,12 +163,15 @@ void FaceAnalyser::AddNextFrame(const cv::Mat_<uchar>& frame, const CLMTracker::
 	}
 
 	// Perform AU prediction
-	AU_predictions = PredictCurrentAUs(true);
+	AU_predictions = PredictCurrentAUs(orientation_to_use, true);
 
 	// Perform AV predictions
 	PredictCurrentAVs(clm);
 
 	this->current_time_seconds = timestamp_seconds;
+
+	view_used = orientation_to_use;
+
 }
 
 void FaceAnalyser::PredictCurrentAVs(const CLMTracker::CLM& clm)
@@ -244,6 +266,10 @@ void FaceAnalyser::Reset()
 	{
 		this->hog_desc_hist[i] = Mat_<unsigned int>(hog_desc_hist[i].rows, hog_desc_hist[i].cols, (unsigned int)0);
 		this->hog_hist_sum[i] = 0;
+
+		// 0 callibration predictions
+		this->au_prediction_correction_count[i] = 0;
+		this->au_prediction_correction_histogram[i] = Mat_<unsigned int>(au_prediction_correction_histogram[i].rows, au_prediction_correction_histogram[i].cols, (unsigned int)0);
 	}
 
 	this->geom_descriptor_median.setTo(Scalar(0));
@@ -257,18 +283,15 @@ void FaceAnalyser::Reset()
 	arousal_value = 0.0;
 	valence_value = 0.0;
 
-	// 0 callibration predictions
-	this->au_prediction_correction_count = 0;
-	this->au_prediction_correction_histogram = Mat_<unsigned int>(au_prediction_correction_histogram.rows, au_prediction_correction_histogram.cols, (unsigned int)0);
 
 	this->av_prediction_correction_count = 0;
 	this->av_prediction_correction_histogram = Mat_<unsigned int>(av_prediction_correction_histogram.rows, av_prediction_correction_histogram.cols, (unsigned int)0);
 
-	dyn_scaling = vector<double>(dyn_scaling.size(), 5.0);	
+	dyn_scaling = vector<vector<double>>(dyn_scaling.size(), vector<double>(dyn_scaling[0].size(), 5.0));	
 
 }
 
-void FaceAnalyser::UpdateRunningMedian(cv::Mat_<unsigned int>& histogram, int& hist_count, cv::Mat_<double>& median, const cv::Mat_<double>& descriptor, int num_bins, double min_val, double max_val)
+void FaceAnalyser::UpdateRunningMedian(cv::Mat_<unsigned int>& histogram, int& hist_count, cv::Mat_<double>& median, const cv::Mat_<double>& descriptor, bool update, int num_bins, double min_val, double max_val)
 {
 
 	double length = max_val - min_val;
@@ -281,16 +304,16 @@ void FaceAnalyser::UpdateRunningMedian(cv::Mat_<unsigned int>& histogram, int& h
 		histogram = Mat_<unsigned int>(descriptor.cols, num_bins, (unsigned int)0);
 	}
 
-	// Find the bins corresponding to the current descriptor
-	Mat_<double> converted_descriptor = (descriptor - min_val)*((double)num_bins)/(length);
-
-	// Capping the top and bottom values
-	converted_descriptor.setTo(Scalar(num_bins-1), converted_descriptor > num_bins - 1);
-	converted_descriptor.setTo(Scalar(0), converted_descriptor < 0);
-
-	// Only count the median till a certain number of frame seen
-	if(hist_count < this->frames_for_adaptation)
+	if(update)
 	{
+		// Find the bins corresponding to the current descriptor
+		Mat_<double> converted_descriptor = (descriptor - min_val)*((double)num_bins)/(length);
+
+		// Capping the top and bottom values
+		converted_descriptor.setTo(Scalar(num_bins-1), converted_descriptor > num_bins - 1);
+		converted_descriptor.setTo(Scalar(0), converted_descriptor < 0);
+
+		// Only count the median till a certain number of frame seen?
 		for(int i = 0; i < histogram.rows; ++i)
 		{
 			int index = (int)converted_descriptor.at<double>(i);
@@ -300,7 +323,6 @@ void FaceAnalyser::UpdateRunningMedian(cv::Mat_<unsigned int>& histogram, int& h
 		// Update the histogram count
 		hist_count++;
 	}
-
 	if(hist_count == 1)
 	{
 		median = descriptor.clone();
@@ -328,7 +350,7 @@ void FaceAnalyser::UpdateRunningMedian(cv::Mat_<unsigned int>& histogram, int& h
 }
 
 // Apply the current predictors to the currently stored descriptors
-vector<pair<string, double>> FaceAnalyser::PredictCurrentAUs(bool dyn_correct)
+vector<pair<string, double>> FaceAnalyser::PredictCurrentAUs(int view, bool dyn_correct)
 {
 
 	vector<pair<string, double>> predictions;
@@ -357,10 +379,16 @@ vector<pair<string, double>> FaceAnalyser::PredictCurrentAUs(bool dyn_correct)
 
 		// Correction that drags the predicion to 0 (assuming the bottom 25% of predictions are of neutral expresssions)
 		vector<double> correction(predictions.size(), 0.0);
-		UpdatePredictionTrack(au_prediction_correction_histogram, au_prediction_correction_count, correction, predictions, 0.25, 200, 0, 5, 1);
+		UpdatePredictionTrack(au_prediction_correction_histogram[view], au_prediction_correction_count[view], correction, predictions, 0.25, 200, 0, 5, 1);
 		
 		for(size_t i = 0; i < correction.size(); ++i)
 		{
+			// Do not depress too much
+			if(correction[i] > 1)
+			{
+				correction[i] = 1;
+			}
+
 			predictions[i].second = predictions[i].second - correction[i];
 
 			if(predictions[i].second < 0)
@@ -373,9 +401,9 @@ vector<pair<string, double>> FaceAnalyser::PredictCurrentAUs(bool dyn_correct)
 		{
 			// Some scaling for effect better visualisation
 			// Also makes sense as till the maximum expression is seen, it is hard to tell how expressive a persons face is
-			if(dyn_scaling.empty())
+			if(dyn_scaling[view].empty())
 			{
-				dyn_scaling = vector<double>(predictions.size(), 6.0);
+				dyn_scaling[view] = vector<double>(predictions.size(), 6.0);
 			}
 		
 			for(size_t i = 0; i < predictions.size(); ++i)
@@ -385,11 +413,11 @@ vector<pair<string, double>> FaceAnalyser::PredictCurrentAUs(bool dyn_correct)
 				{
 					double scaling_curr = 5.0 / predictions[i].second;
 				
-					if(scaling_curr < dyn_scaling[i])
+					if(scaling_curr < dyn_scaling[view][i])
 					{
-						dyn_scaling[i] = scaling_curr;
+						dyn_scaling[view][i] = scaling_curr;
 					}
-					predictions[i].second = predictions[i].second * dyn_scaling[i];
+					predictions[i].second = predictions[i].second * dyn_scaling[view][i];
 				}
 
 				if(predictions[i].second > 5)
