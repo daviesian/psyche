@@ -58,11 +58,7 @@ void SVR_dynamic_lin_regressors::Predict(std::vector<double>& predictions, std::
 	if(AU_names.size() > 0)
 	{
 		Mat_<double> preds = (fhog_descriptor - this->means - running_median) * this->support_vectors + this->biases;
-
-		// Remove below 0 and above 5 predictions
-		preds.setTo(0, preds < 0);
-		preds.setTo(5, preds > 5);
-
+		
 		for(MatIterator_<double> pred_it = preds.begin(); pred_it != preds.end(); ++pred_it)
 		{		
 			predictions.push_back(*pred_it);

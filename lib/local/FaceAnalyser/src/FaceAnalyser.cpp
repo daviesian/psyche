@@ -377,24 +377,18 @@ vector<pair<string, double>> FaceAnalyser::PredictCurrentAUs(int view, bool dyn_
 			predictions.push_back(pair<string, double>(svr_lin_dyn_aus[i], svr_lin_dyn_preds[i]));
 		}
 
-		// Correction that drags the predicion to 0 (assuming the bottom 25% of predictions are of neutral expresssions)
+		// Correction that drags the predicion to 0 (assuming the bottom 10% of predictions are of neutral expresssions)
 		vector<double> correction(predictions.size(), 0.0);
-		UpdatePredictionTrack(au_prediction_correction_histogram[view], au_prediction_correction_count[view], correction, predictions, 0.25, 200, 0, 5, 1);
+		UpdatePredictionTrack(au_prediction_correction_histogram[view], au_prediction_correction_count[view], correction, predictions, 0.10, 200, 0, 5, 1);
 		
 		for(size_t i = 0; i < correction.size(); ++i)
 		{
-			// Do not depress too much
-			if(correction[i] > 1)
-			{
-				correction[i] = 1;
-			}
-
 			predictions[i].second = predictions[i].second - correction[i];
 
 			if(predictions[i].second < 0)
-			{
 				predictions[i].second = 0;
-			}
+			if(predictions[i].second > 5)
+				predictions[i].second = 5;
 		}
 
 		if(dyn_correct)

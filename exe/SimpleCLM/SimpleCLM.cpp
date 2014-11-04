@@ -288,8 +288,6 @@ int main (int argc, char **argv)
 				au_preds = face_analyser.GetCurrentAUs();
 			}
 			
-			cout << face_analyser.GetConfidence() << " " << endl;
-
 			// Output the estimated head pose
 			if(!pose_output_files.empty())
 			{
