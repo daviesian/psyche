@@ -291,6 +291,68 @@ void FaceAnalyser::Reset()
 
 }
 
+// Use rult-based AU values for basic emotions
+std::string FaceAnalyser::GetCurrentCategoricalEmotion()
+{
+
+	string emotion = "";
+
+	// Grab the latest AUs
+
+	if(!this->AU_predictions.empty())
+	{
+
+		// Find the AUs of interest
+		map<string, double> au_activations;
+		
+		for(size_t i = 0; i < this->AU_predictions.size(); ++i)
+		{
+			au_activations[this->AU_predictions[i].first] = this->AU_predictions[i].second;
+		}
+
+		double threshold = 3;
+
+		double AU1 = au_activations["Inner brow raise"];
+		double AU2 = au_activations["Outer brow raise"];
+		double AU4 = au_activations["Brow lower"];
+		double AU5 = au_activations["Eyes widen"];
+		double AU6 = au_activations["Cheek raise"];
+		double AU12 = au_activations["Smile"];
+		double AU9 = au_activations["Nose Wrinkle"];
+		double AU15 = au_activations["Frown"];
+		double AU17 = au_activations["Chin raise"];
+		double AU25 = au_activations["Lips part"];
+		double AU26 = au_activations["Jaw drop"];
+
+		if(AU6 > threshold && AU12 > threshold)
+		{
+			emotion = "Happy";
+		}
+		else if(AU1 > threshold && AU4 > threshold/2.0 && AU15 > threshold)
+		{
+			emotion = "Sad";
+		}
+		else if(AU4 > threshold && AU12 < 1 && AU6 < 1)
+		{
+			emotion = "Angry";
+		}
+		else if(AU9 > threshold && AU15 > threshold)
+		{
+			emotion = "Disgusted";
+		}
+		else if((AU1 > threshold || AU2 > threshold) && AU5 > threshold && AU26 > threshold)
+		{
+			emotion = "Surprised";
+		}
+		else if(AU1 < 1 && AU4 < 1 && AU6 < 1 && AU9 < 1 && AU12 < 1 && AU15 < 1 && AU26 < 1)
+		{
+			emotion = "Neutral";
+		}
+
+	}
+	return emotion;
+}
+
 void FaceAnalyser::UpdateRunningMedian(cv::Mat_<unsigned int>& histogram, int& hist_count, cv::Mat_<double>& median, const cv::Mat_<double>& descriptor, bool update, int num_bins, double min_val, double max_val)
 {
 

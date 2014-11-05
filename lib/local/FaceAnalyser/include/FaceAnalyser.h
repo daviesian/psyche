@@ -37,6 +37,9 @@ public:
 
 	double GetCurrentValence();
 
+	// Use basic emotion rules for inferring them from AUs
+	std::string GetCurrentCategoricalEmotion();
+
 	std::vector<std::pair<std::string, double>> GetCurrentAUs();
 
 	void Reset();
