@@ -172,6 +172,8 @@ void FaceAnalyser::AddNextFrame(const cv::Mat_<uchar>& frame, const CLMTracker::
 
 	view_used = orientation_to_use;
 
+	cout << GetCurrentCategoricalEmotion() << endl;
+
 }
 
 void FaceAnalyser::PredictCurrentAVs(const CLMTracker::CLM& clm)
@@ -328,19 +330,19 @@ std::string FaceAnalyser::GetCurrentCategoricalEmotion()
 		{
 			emotion = "Happy";
 		}
-		else if(AU1 > threshold && AU4 > threshold/2.0 && AU15 > threshold)
+		else if(AU1 > threshold && AU15 > threshold)
 		{
 			emotion = "Sad";
 		}
-		else if(AU4 > threshold && AU12 < 1 && AU6 < 1)
+		else if(AU4 > threshold && AU9 < 1 && AU2 < 1 && AU1 <  1 && AU12 < 1 && AU6 < 1)
 		{
 			emotion = "Angry";
 		}
-		else if(AU9 > threshold && AU15 > threshold)
+		else if(AU9 > threshold && (AU4 > threshold || AU15 > threshold))
 		{
 			emotion = "Disgusted";
 		}
-		else if((AU1 > threshold || AU2 > threshold) && AU5 > threshold && AU26 > threshold)
+		else if((AU1 > threshold || AU2 > threshold) && AU5 > threshold/2.0 && AU15 < 1)
 		{
 			emotion = "Surprised";
 		}
