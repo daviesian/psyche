@@ -23,6 +23,9 @@ namespace Psyche
     /// </summary>
     public partial class ChooseInput : Window
     {
+        bool continueListing = true;
+        AutoResetEvent doneListing = new AutoResetEvent(false);
+
         public ChooseInput()
         {
             InitializeComponent();
@@ -37,7 +40,7 @@ namespace Psyche
         {
             Thread.CurrentThread.IsBackground = true;
             int i = 0;
-            while (true)
+            while (continueListing)
             {
                 using (Capture c = new Capture(i))
                 {
@@ -65,10 +68,7 @@ namespace Psyche
 
                             img.MouseDown += (s, e) =>
                             {
-                                Console.WriteLine("Select camera " + idx);
-                                MainWindow window = new MainWindow(idx);
-                                window.Show();
-                                Close();
+                                ChooseCamera(idx);
                             };
                         });
                     }
@@ -81,6 +81,8 @@ namespace Psyche
                 i++;
             }
 
+            doneListing.Set();
+
         }
 
         private void OpenFile_Click(object sender, RoutedEventArgs e)
@@ -92,6 +94,22 @@ namespace Psyche
                 window.Show();
                 Close();
             }
+        }
+
+        private void ChooseCamera(int idx)
+        {
+            new Thread(() => {
+                continueListing = false;
+                doneListing.WaitOne();
+                Console.WriteLine("Select camera " + idx);
+
+                Dispatcher.Invoke(() =>
+                {
+                    MainWindow window = new MainWindow(idx);
+                    window.Show();
+                    Close();
+                });
+            }).Start();
         }
     }
 }

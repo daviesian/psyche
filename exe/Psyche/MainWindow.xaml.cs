@@ -231,6 +231,7 @@ namespace Psyche
                 trackingFps.AddFrame();
 
                 Dictionary<String, double> aus = analyser.GetCurrentAUs();
+                string emotion = analyser.GetCurrentCategoricalEmotion();
                 double arousal = analyser.GetCurrentArousal();
                 double valence = analyser.GetCurrentValence();
                 double confidence = analyser.GetConfidence();
@@ -277,6 +278,8 @@ namespace Psyche
                             avPlot.AddDataPoint(new DataPoint() { Time = CurrentTime, values = avDict, Confidence = confidence });
 
                             auGraph.Update(aus, confidence);
+
+                            emotionLabel.Content = emotion;
                         }
                         else
                         {

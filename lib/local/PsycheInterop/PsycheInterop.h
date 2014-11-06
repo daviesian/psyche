@@ -274,6 +274,10 @@ namespace PsycheInterop {
 			return dict;
 		}
 
+		System::String^ GetCurrentCategoricalEmotion() {
+			return gcnew System::String(faceAnalyser->GetCurrentCategoricalEmotion().c_str());
+		}
+
 		void Reset() {
 			faceAnalyser->Reset();
 		}
