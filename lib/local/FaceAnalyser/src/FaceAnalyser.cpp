@@ -338,11 +338,11 @@ std::string FaceAnalyser::GetCurrentCategoricalEmotion()
 		{
 			emotion = "Angry";
 		}
-		else if(AU9 > threshold && (AU4 > threshold || AU15 > threshold))
+		else if(AU9 > threshold && AU4 > threshold)
 		{
 			emotion = "Disgusted";
 		}
-		else if((AU1 > threshold || AU2 > threshold) && AU5 > threshold/2.0 && AU15 < 1)
+		else if((AU1 > threshold && AU2 > threshold) && AU5 > threshold/2.0 && AU15 < 1)
 		{
 			emotion = "Surprised";
 		}
