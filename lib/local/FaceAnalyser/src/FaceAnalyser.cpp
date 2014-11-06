@@ -45,12 +45,8 @@ FaceAnalyser::FaceAnalyser(std::string au_location, std::string av_location)
 	// Just using frontal currently
 	head_orientations.push_back(Vec3d(0,0,0));
 	// Adding orientations for slight profile and slight head up/down modes
-	head_orientations.push_back(Vec3d(    0, 0.25, 0));
-	head_orientations.push_back(Vec3d(    0,-0.25, 0));
-	head_orientations.push_back(Vec3d(    0, 0.5, 0));
-	head_orientations.push_back(Vec3d(    0,-0.5, 0));
-	head_orientations.push_back(Vec3d( 0.25,    0, 0));
-	head_orientations.push_back(Vec3d(-0.25,    0, 0));
+	head_orientations.push_back(Vec3d(    0, 0.6, 0));
+	head_orientations.push_back(Vec3d(    0,-0.6, 0));
 	head_orientations.push_back(Vec3d( 0.5,    0, 0));
 	head_orientations.push_back(Vec3d(-0.5,    0, 0));
 	hog_hist_sum.resize(head_orientations.size());
