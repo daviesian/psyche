@@ -172,8 +172,6 @@ void FaceAnalyser::AddNextFrame(const cv::Mat_<uchar>& frame, const CLMTracker::
 
 	view_used = orientation_to_use;
 
-	cout << GetCurrentCategoricalEmotion() << endl;
-
 }
 
 void FaceAnalyser::PredictCurrentAVs(const CLMTracker::CLM& clm)
