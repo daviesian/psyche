@@ -6,8 +6,21 @@ using namespace Psyche;
 
 void SVR_dynamic_lin_regressors_scale::Read(std::ifstream& stream, const std::vector<std::string>& au_names)
 {
-	// TODO check if means are the same. TODO sth wrong if not
-	CLMTracker::ReadMatBin(stream, this->means);
+
+	if(this->means.empty())
+	{
+		CLMTracker::ReadMatBin(stream, this->means);
+	}
+	else
+	{
+		Mat_<double> m_tmp;
+		CLMTracker::ReadMatBin(stream, m_tmp);
+		if(cv::norm(m_tmp - this->means > 0.00001))
+		{
+			cout << "Something went wrong with the SVR dynamic regressors" << endl;
+		}
+	}
+	
 	CLMTracker::ReadMatBin(stream, this->scaling);
 
 	Mat_<double> support_vectors_curr;

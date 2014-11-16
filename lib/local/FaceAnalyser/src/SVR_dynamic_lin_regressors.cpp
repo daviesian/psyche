@@ -19,8 +19,8 @@ void SVR_dynamic_lin_regressors::Read(std::ifstream& stream, const std::vector<s
 		{
 			cout << "Something went wrong with the SVR dynamic regressors" << endl;
 		}
-
 	}
+
 	Mat_<double> support_vectors_curr;
 	CLMTracker::ReadMatBin(stream, support_vectors_curr);
 
