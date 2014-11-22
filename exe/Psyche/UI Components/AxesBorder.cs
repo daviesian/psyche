@@ -32,7 +32,7 @@ namespace Psyche
             Pen q = new Pen(Brushes.LightGray, 1);
 
             double padLeft = Padding.Left;
-            double padBottom = Padding.Bottom - 2;
+            double padBottom = Padding.Bottom - 2 + 10;
             double padTop = Padding.Top;
             double padRight = Padding.Right;
 
@@ -44,7 +44,7 @@ namespace Psyche
                 if (i != 2)
                     dc.DrawLine(q, new Point(padLeft, y), new Point(ActualWidth - padRight, y));
                 dc.DrawLine(p, new Point(padLeft - 10, y), new Point(padLeft, y));
-                var t = FT((i / 2.0 - 1).ToString("0.0"));
+                var t = FT((i / 2.0 - 1).ToString("0.0"), 10);
                 dc.DrawText(t, new Point(padLeft - t.Width - 12, y - t.Height / 2));
             }
 
@@ -57,7 +57,7 @@ namespace Psyche
                     dc.DrawLine(q, new Point(x, ActualHeight - padBottom), new Point(x, padTop));
                 dc.DrawLine(p, new Point(x, ActualHeight - padBottom + 10), new Point(x, ActualHeight - padBottom));
 
-                var t = FT(i.ToString());
+                var t = FT(i.ToString(), 10);
                 dc.DrawText(t, new Point(x - t.Width / 2, ActualHeight - padBottom + t.Height));
             }
 
@@ -70,12 +70,12 @@ namespace Psyche
 
             // Draw x axis label
 
-            FormattedText ft = FT("History (seconds)");
+            FormattedText ft = FT("History (seconds)", 20);
             dc.DrawText(ft, new Point(padLeft + (ActualWidth - padLeft - padRight) / 2 - ft.Width / 2, ActualHeight - ft.Height));
 
             // Draw y axis label
 
-            ft = FT(RangeLabel);
+            ft = FT(RangeLabel, 20);
             dc.PushTransform(new RotateTransform(-90));
             dc.DrawText(ft, new Point(-ft.Width - ActualHeight / 2 + ft.Width / 2, 0));
         }
@@ -86,7 +86,7 @@ namespace Psyche
             Pen q = new Pen(Brushes.LightGray, 1);
 
             double padLeft = Padding.Left;
-            double padBottom = Padding.Bottom - 2;
+            double padBottom = Padding.Bottom - 2 + 10;
             double padTop = Padding.Top;
             double padRight = Padding.Right;
 
@@ -98,7 +98,7 @@ namespace Psyche
                 if (i > 0)
                     dc.DrawLine(q, new Point(padLeft, y), new Point(ActualWidth - padRight, y));
                 dc.DrawLine(p, new Point(padLeft - 10, y), new Point(padLeft, y));
-                var t = FT(i.ToString());
+                var t = FT(i.ToString(), 10);
                 dc.DrawText(t, new Point(padLeft - t.Width - 12, y - t.Height / 2));
             }
 
@@ -111,7 +111,7 @@ namespace Psyche
                     dc.DrawLine(q, new Point(x, ActualHeight - padBottom), new Point(x, padTop));
                 dc.DrawLine(p, new Point(x, ActualHeight - padBottom + 10), new Point(x, ActualHeight - padBottom));
 
-                var t = FT(((4-i) / 2.0 - 1).ToString("0.0"));
+                var t = FT(((4-i) / 2.0 - 1).ToString("0.0"), 10);
                 dc.DrawText(t, new Point(x - t.Width / 2, ActualHeight - padBottom + t.Height));
             }
 
@@ -124,19 +124,19 @@ namespace Psyche
 
             // Draw x axis label
 
-            FormattedText ft = FT(RangeLabel);
+            FormattedText ft = FT(RangeLabel, 20);
             dc.DrawText(ft, new Point(padLeft + (ActualWidth - padLeft - padRight) / 2 - ft.Width / 2, ActualHeight - ft.Height));
 
             // Draw y axis label
 
-            ft = FT("History (seconds)");
+            ft = FT("History (seconds)", 20);
             dc.PushTransform(new RotateTransform(-90));
             dc.DrawText(ft, new Point(-ft.Width - ActualHeight / 2 + ft.Width / 2, 0));
         }
 
-        private FormattedText FT(string text)
+        private FormattedText FT(string text, int size)
         {
-            return new FormattedText(text, CultureInfo.CurrentCulture, System.Windows.FlowDirection.LeftToRight, new Typeface("Verdana"), 10, Brushes.Black);
+            return new FormattedText(text, CultureInfo.CurrentCulture, System.Windows.FlowDirection.LeftToRight, new Typeface("Verdana"), size, Brushes.Black);
         }
 
     }

@@ -135,11 +135,11 @@ namespace Psyche
             dc.DrawLine(axisPen, new Point((ActualWidth / 2) - 0.5, 0), new Point((ActualWidth / 2) - 0.5 - 10, 15));
             dc.DrawLine(axisPen, new Point((ActualWidth / 2) - 0.5, 0), new Point((ActualWidth / 2) - 0.5 + 10, 15));
 
-            FormattedText t = new FormattedText("Valence", System.Globalization.CultureInfo.CurrentCulture, System.Windows.FlowDirection.LeftToRight, new Typeface("Verdana"), 10, Brushes.Black);
+            FormattedText t = new FormattedText("Valence", System.Globalization.CultureInfo.CurrentCulture, System.Windows.FlowDirection.LeftToRight, new Typeface("Verdana"), 20, Brushes.Black);
             dc.DrawText(t, new Point(0, ActualHeight / 2));
 
-            FormattedText t2 = new FormattedText("Arousal", System.Globalization.CultureInfo.CurrentCulture, System.Windows.FlowDirection.LeftToRight, new Typeface("Verdana"), 10, Brushes.Black);
-            dc.DrawText(t2, new Point(ActualWidth / 2 + 10, ActualHeight - 15));
+            FormattedText t2 = new FormattedText("Arousal", System.Globalization.CultureInfo.CurrentCulture, System.Windows.FlowDirection.LeftToRight, new Typeface("Verdana"), 20, Brushes.Black);
+            dc.DrawText(t2, new Point(ActualWidth / 2 + 10, ActualHeight - t2.Height));
 
             Dictionary<string, SolidColorBrush> bs = new Dictionary<string, SolidColorBrush>();
             bs["AV"] = new SolidColorBrush(Color.FromArgb(255, 128, 0, 0));

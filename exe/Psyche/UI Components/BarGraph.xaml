@@ -6,7 +6,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <DockPanel HorizontalAlignment="Center">
-        <Label Name="lblTitle" DockPanel.Dock="Bottom" Margin="0 5 0 0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">Title</Label>
+        <Label Name="lblTitle" DockPanel.Dock="Bottom" Margin="0 -5 0 0" HorizontalContentAlignment="Center" VerticalContentAlignment="Top" FontSize="16" Height="55">Title</Label>
         <Border Name="barContainer" Background="PowderBlue" Width="32"  Margin="0 2">
             <Rectangle Name="bar" Fill="CadetBlue" Height="16" VerticalAlignment="Bottom"/>
         </Border>

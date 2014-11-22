@@ -58,6 +58,8 @@ namespace Psyche
         double fpsLimit = 0;
         string videoFile = null;
 
+        Queue<Tuple<DateTime, string>> emotionLabelHistory = new Queue<Tuple<DateTime, string>>();
+
         public MainWindow(int device)
         {
             InitializeComponent();
@@ -279,7 +281,9 @@ namespace Psyche
 
                             auGraph.Update(aus, confidence);
 
-                            emotionLabel.Content = emotion;
+                            emotionLabelHistory.Enqueue(new Tuple<DateTime, string>(CurrentTime, emotion));
+
+                            UpdateEmotionLabel();
                         }
                         else
                         {
@@ -313,6 +317,21 @@ namespace Psyche
             var clickPos = e.GetPosition(video);
 
             resetPoint = new Point(clickPos.X / video.ActualWidth, clickPos.Y / video.ActualHeight);
+        }
+
+        private void UpdateEmotionLabel()
+        {
+
+            while (emotionLabelHistory.Peek().Item1 < CurrentTime - TimeSpan.FromSeconds(0.8))
+                emotionLabelHistory.Dequeue();
+
+            string emotion = emotionLabelHistory.Peek().Item2;
+            foreach (var t in emotionLabelHistory)
+            {
+                if (t.Item2 != emotion)
+                    return;
+            }
+            emotionLabel.Content = emotion;
         }
 
     }

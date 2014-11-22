@@ -37,7 +37,7 @@ namespace Psyche
                 if (!bars.ContainsKey(title))
                 {
                     BarGraph newBar = new BarGraph();
-                    newBar.Title = title;
+                    newBar.Title = title.Replace(" ", "\n");
                     barGrid.ColumnDefinitions.Add(new ColumnDefinition());
                     Grid.SetColumn(newBar, bars.Count);
                     barGrid.Children.Add(newBar);
