@@ -270,7 +270,7 @@ struct CLMParameters
 			reg_factor = 25;
 			weight_factor = 0; // By default do not use NU-RLMS, as weight factor is dependent on the database and needs to be estimated
 
-			validation_boundary = -0.4;
+			validation_boundary = -0.2;
 
 			limit_pose = true;
 			multi_view = false;

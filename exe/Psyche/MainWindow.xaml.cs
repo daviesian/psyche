@@ -64,6 +64,14 @@ namespace Psyche
         {
             InitializeComponent();
 
+            BitmapImage src = new BitmapImage();
+            src.BeginInit();
+            src.UriSource = new Uri("logo2.png", UriKind.RelativeOrAbsolute);
+            src.CacheOption = BitmapCacheOption.OnLoad;
+            src.EndInit();
+            
+            logo_bitmap.Source = src;
+
             if (SystemParameters.PrimaryScreenWidth <= Width || SystemParameters.PrimaryScreenHeight <= Height)
                 WindowState = System.Windows.WindowState.Maximized;
 

@@ -67,8 +67,8 @@
                 </Grid.RowDefinitions>
                 <Button Grid.Row="0" Padding="10" Click="ResetButton_Click" VerticalAlignment="Center">Reset</Button>
                 <Button Grid.Row="1" Padding="10" Click="QuitButton_Click" VerticalAlignment="Center">Quit</Button>
-                <Image Grid.Row="2" Source="ucam_logo.png" Stretch="None" SnapsToDevicePixels="True" RenderOptions.BitmapScalingMode="NearestNeighbor" />
-                <Image Grid.Row="4" Source="bae.png" Stretch="None" SnapsToDevicePixels="True" RenderOptions.BitmapScalingMode="NearestNeighbor" />
+                <Image Grid.Row="2" Source="ucam_logo.png" Stretch="None" SnapsToDevicePixels="True" RenderOptions.BitmapScalingMode="HighQuality" />
+                <Image Name="logo_bitmap" MaxWidth="200" Grid.Row="4" Source="bae.png" Stretch="Uniform" SnapsToDevicePixels="True" RenderOptions.BitmapScalingMode="HighQuality" />
 
             </Grid>
 
