@@ -88,6 +88,93 @@ vector<string> get_arguments(int argc, char **argv)
 	return arguments;
 }
 
+// Useful utility for creating directories for storing the output files
+void create_directory_from_file(string output_path)
+{
+
+	// Creating the right directory structure
+	
+	// First get rid of the file
+	auto p = path(path(output_path).parent_path());
+
+	if(!p.empty() && !boost::filesystem::exists(p))		
+	{
+		bool success = boost::filesystem::create_directories(p);
+		if(!success)
+		{
+			cout << "Failed to create a directory... " << p.string() << endl;
+		}
+	}
+}
+
+// Extracting the following command line arguments -f, -fd, -op, -of, -ov (and possible ordered repetitions)
+void get_output_feature_params(vector<string> &output_aus, vector<string> &output_dims, vector<string> &arguments)
+{
+	output_aus.clear();
+	output_dims.clear();
+
+	bool* valid = new bool[arguments.size()];
+
+	for(size_t i = 0; i < arguments.size(); ++i)
+	{
+		valid[i] = true;
+	}
+
+	string input_root = "";
+	string output_root = "";
+
+	// First check if there is a root argument (so that videos and outputs could be defined more easilly)
+	for(size_t i = 0; i < arguments.size(); ++i)
+	{
+		if (arguments[i].compare("-root") == 0) 
+		{                    
+			input_root = arguments[i + 1];
+			output_root = arguments[i + 1];
+			i++;
+		}
+		if (arguments[i].compare("-inroot") == 0) 
+		{                    
+			input_root = arguments[i + 1];
+			i++;
+		}
+		if (arguments[i].compare("-outroot") == 0) 
+		{                    
+			output_root = arguments[i + 1];
+			i++;
+		}
+	}
+
+	for(size_t i = 0; i < arguments.size(); ++i)
+	{
+		if (arguments[i].compare("-out_au") == 0) 
+		{                    
+			output_aus.push_back(output_root + arguments[i + 1]);
+			create_directory_from_file(output_root + arguments[i + 1]);
+			valid[i] = false;
+			valid[i+1] = false;			
+			i++;
+		}		
+		if (arguments[i].compare("-out_dim") == 0) 
+		{                    
+			output_dims.push_back(output_root + arguments[i + 1]);
+			create_directory_from_file(output_root + arguments[i + 1]);
+			valid[i] = false;
+			valid[i+1] = false;			
+			i++;
+		}		
+	}
+
+	for(int i=arguments.size()-1; i >= 0; --i)
+	{
+		if(!valid[i])
+		{
+			arguments.erase(arguments.begin()+i);
+		}
+	}
+
+}
+
+
 int main (int argc, char **argv)
 {
 
@@ -115,6 +202,10 @@ int main (int argc, char **argv)
 	// The modules that are being used for tracking
 	CLMTracker::CLM clm_model(clm_parameters.model_location);	
 	
+	vector<string> output_aus;
+	vector<string> output_dims;
+	get_output_feature_params(output_aus, output_dims, arguments);
+
 	Psyche::FaceAnalyser face_analyser;
 
 	// If multiple video files are tracked, use this to indicate if we are done
@@ -182,6 +273,21 @@ int main (int argc, char **argv)
 		if(!pose_output_files.empty())
 		{
 			pose_output_file.open (pose_output_files[f_n]);
+		}
+
+		// Creating output files
+		std::ofstream au_output_file;
+		if(!output_aus.empty())
+		{
+			au_output_file.open (output_aus[f_n]);
+		}
+
+		// Creating output files
+		std::ofstream dim_output_file;
+		if(!output_dims.empty())
+		{
+			dim_output_file.open (output_dims[f_n]);
+			dim_output_file << "Arousal, Valence" << endl;
 		}
 	
 		std::ofstream landmarks_output_file;		
@@ -283,11 +389,14 @@ int main (int argc, char **argv)
 			}
 			else
 			{
-				face_analyser.Reset();
+				//face_analyser.Reset();
 				face_analyser.AddNextFrame(grayscale_image, clm_model, 0);
 				au_preds = face_analyser.GetCurrentAUs();
 			}
 			
+			// Output the estimated dimensions
+			//cout << face_analyser.GetCurrentArousal() << " " << face_analyser.GetCurrentValence() << endl;
+
 			// Output the estimated head pose
 			if(!pose_output_files.empty())
 			{
@@ -299,6 +408,22 @@ int main (int argc, char **argv)
 				}
 				pose_output_file << endl;
 			}		
+
+			if(!output_dims.empty())
+			{
+				dim_output_file << face_analyser.GetCurrentArousal() << ", " << face_analyser.GetCurrentValence() << endl;
+			}
+
+			if(!output_aus.empty())
+			{
+				au_output_file << face_analyser.GetConfidence() << " ";
+				for(auto au_it = au_preds.begin(); au_it != au_preds.end(); ++au_it)
+				{
+					au_output_file << au_it->first << " " << au_it->second << " ";
+				}
+				cout << endl;
+			}
+
 			// Visualising the results
 			// Drawing the facial landmarks on the face and the bounding box around it if tracking is successful and initialised
 			double detection_certainty = clm_model.detection_certainty;
@@ -400,6 +525,7 @@ int main (int argc, char **argv)
 
 		// Reset the model, for the next video
 		clm_model.Reset();
+		face_analyser.Reset();
 
 		pose_output_file.close();
 		landmarks_output_file.close();

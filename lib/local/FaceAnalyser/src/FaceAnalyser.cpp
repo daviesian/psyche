@@ -306,7 +306,7 @@ std::string FaceAnalyser::GetCurrentCategoricalEmotion()
 			au_activations[this->AU_predictions[i].first] = this->AU_predictions[i].second;
 		}
 
-		double threshold = 3;
+		double threshold = 2.5;
 
 		double AU1 = au_activations["Inner brow raise"];
 		double AU2 = au_activations["Outer brow raise"];
@@ -328,7 +328,7 @@ std::string FaceAnalyser::GetCurrentCategoricalEmotion()
 		{
 			emotion = "Sad";
 		}
-		else if(AU4 > threshold && AU9 < 1 && AU2 < 1 && AU1 <  1 && AU12 < 1 && AU6 < 1)
+		else if(AU4 > threshold && AU9 < 2.0 && AU12 < 2.0)
 		{
 			emotion = "Angry";
 		}
@@ -336,7 +336,7 @@ std::string FaceAnalyser::GetCurrentCategoricalEmotion()
 		{
 			emotion = "Disgusted";
 		}
-		else if((AU1 > threshold && AU2 > threshold) && AU5 > threshold/2.0 && AU15 < 1)
+		else if((AU2 > threshold) && AU5 > threshold)
 		{
 			emotion = "Surprised";
 		}
